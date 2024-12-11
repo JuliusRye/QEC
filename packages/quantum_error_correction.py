@@ -9,7 +9,7 @@ from matplotlib.axes import Axes
 from qiskit.circuit import QuantumCircuit, QuantumRegister, ClassicalRegister, AncillaRegister
 from qiskit.quantum_info import StabilizerState, Statevector
 
-from icecream import ic
+from icecream import ic  # For debugging
 
 deformations = {  # The different Clifford deformations (neglecting the phase)
     'I': {'X': 'X', 'Y': 'Y', 'Z': 'Z', 'color': 'black'},
@@ -35,10 +35,10 @@ def state_from_stabilizers(stabilizer_list: list[str], allow_underconstrained=Fa
 
 def jax_get_syndromes(Mx: jnp.ndarray, My: jnp.ndarray, Mz: jnp.ndarray, err: jnp.ndarray) -> jnp.ndarray:
     return ((
-        jnp.matmul(Mx, err == 1) + 
-        jnp.matmul(My, err == 2) + 
+        jnp.matmul(Mx, err == 1) +
+        jnp.matmul(My, err == 2) +
         jnp.matmul(Mz, err == 3)
-        ) % 2).astype(int)
+    ) % 2).astype(int)
 
 
 def jax_get_syndromes_batch(Mx: jnp.ndarray, My: jnp.ndarray, Mz: jnp.ndarray, err: jnp.ndarray) -> jnp.ndarray:
@@ -295,4 +295,3 @@ def repetion_code_data(d: int, pauli: str):
             else Qubit((None, None, None))
             for i in range(d+1)],
     }
-

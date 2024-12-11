@@ -1,7 +1,7 @@
 import jax.numpy as jnp
 import jax
 
-from icecream import ic
+from icecream import ic  # For debugging
 
 
 def sigmoid(x):

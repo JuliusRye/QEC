@@ -55,3 +55,6 @@ def NN_init_params(key, num_neurons_layers):
         params['biases'].append(jnp.zeros(num_neurons))
 
     return params
+
+
+NN_batch = jax.vmap(NN, in_axes=[0, None], out_axes=0)

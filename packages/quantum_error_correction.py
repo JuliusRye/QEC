@@ -167,12 +167,13 @@ class QEC():
                         print(pauli)
         return Mx, My, Mz
 
-    def show(self, elev=60, azim=0, roll=0, errors=None, marker_size=15, title: str = "") -> Axes:
+    def show(self, axis: Axes=None, elev=60, azim=0, roll=0, errors=None, marker_size=15, title: str = "") -> Axes:
         """
         Makes a 3d plot of the data qubits, measurement qubits and the pauli connections between them
         """
-        fig = plt.figure(dpi=300)
-        axis = fig.add_subplot(projection='3d')
+        if axis is None:
+            fig = plt.figure(dpi=300)
+            axis = fig.add_subplot(projection='3d')
         # Plot qubits and stabilizers
         if errors is None:
             errors = jnp.zeros(self._size(self.data["data_qubits"]))
@@ -212,7 +213,7 @@ class QEC():
         axis.view_init(elev, azim-90, roll)
         axis.set_aspect('equal')
         axis.set_title(title)
-        return fig, axis
+        return axis
 
     def qc_cycle(self) -> QuantumCircuit:
         """

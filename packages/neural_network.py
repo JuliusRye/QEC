@@ -3,6 +3,21 @@ import jax
 
 from icecream import ic  # For debugging
 
+import json
+
+
+def save_NN(file: str, params: dict[str, list[jnp.ndarray]]) -> None:
+    package = {key: [val.tolist() for val in vals]
+               for key, vals in params.items()}
+    with open(file, 'w') as file:
+        json.dump(package, file, indent=4)
+
+
+def load_NN(file: str) -> dict[str, list[jnp.ndarray]]:
+    with open(file, 'r') as file:
+        package = json.load(file)
+    return {key: [jnp.array(val) for val in vals] for key, vals in package.items()}
+
 
 def sigmoid(x):
     return 1/(1 + jnp.exp(-x))
@@ -27,7 +42,8 @@ def NN(x, params):
         if layer_idx < num_layers-1:
             x = jnp.tanh(x)
         else:
-            x = soft_plus(x)
+            x = sigmoid(x)
+            # x = soft_plus(x)
     return x
 
 

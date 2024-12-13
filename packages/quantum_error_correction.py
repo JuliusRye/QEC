@@ -121,11 +121,17 @@ class QEC():
         """
         self.data = data
         # Define Pauli colors
-        self.colors = {
+        self.stabilizer_colors = {
             'X': '#aa0000',
             'Y': '#00aa00',
             'Z': '#0000aa',
         }
+        self.error_colors = [
+            'black',  # Identity
+            'red',    # Pauli X
+            'green',  # Pauli Y
+            'blue'    # Pauli Z
+        ]
 
     def deform(self, qubit_index: list, deformation: dict[str, str]) -> None:
         qubit: Qubit = self._from_index(self.data["data_qubits"], qubit_index)
@@ -141,16 +147,16 @@ class QEC():
         # Flatten the qubits and index them in order
         for idx, qubit in enumerate(self._flatten(self.data["data_qubits"])):
             qubit.index = idx
-        for idx, qubit in enumerate(self._flatten(self.data["stab_qubits"])):
+        for idx, qubit in enumerate(self._flatten(self.data["synd_qubits"])):
             qubit.index = idx
         # Calculate the transformation matrices
         Mx = np.zeros(
-            (self._size(self.data["stab_qubits"]), self._size(self.data["data_qubits"])))
+            (self._size(self.data["synd_qubits"]), self._size(self.data["data_qubits"])))
         My = Mx.copy()
         Mz = Mx.copy()
         for idx_a, qubit in enumerate(self._flatten(self.data["data_qubits"])):
             for (index, pauli) in qubit.acted_on_by:
-                idx_b = self._from_index(self.data["stab_qubits"], index).index
+                idx_b = self._from_index(self.data["synd_qubits"], index).index
                 if idx_b is None:
                     continue
                 match pauli:
@@ -167,52 +173,65 @@ class QEC():
                         print(pauli)
         return Mx, My, Mz
 
-    def show(self, axis: Axes=None, elev=60, azim=0, roll=0, errors=None, marker_size=15, title: str = "") -> Axes:
+    def show(self, axis: Axes = None, elev=60, azim=0, roll=0, errors=None, marker_size=15, title: str = "") -> Axes:
         """
         Makes a 3d plot of the data qubits, measurement qubits and the pauli connections between them
         """
+        # Create a figure axis if no axis was passed
         if axis is None:
             fig = plt.figure(dpi=300)
             axis = fig.add_subplot(projection='3d')
         # Plot qubits and stabilizers
         if errors is None:
+            # Set data qubits errors to identity (value: 0)
             errors = jnp.zeros(self._size(self.data["data_qubits"]))
-        syndromes = jax_get_syndromes(*self.transformation_matrix(), errors)
-        exterior_color = ['black', 'red', 'green', 'blue']
+        # Plot the data qubits
         for qubit, error in zip(self._flatten(self.data["data_qubits"]), errors):
             ax, ay, az = qubit.location
             axis.plot(ax, ay, az, '.', ms=marker_size, c='black',
-                      mfc=exterior_color[int(error)])
+                      mfc=self.error_colors[int(error)])
+            # Plot the stabilizers between the data and syndrome qubits
             for (index, pauli) in qubit.acted_on_by:
                 bx, by, bz = self._from_index(
-                    self.data["stab_qubits"], index).location
+                    self.data["synd_qubits"], index).location
+                # Check that the syndrome qubit is not hidden
                 if bx is None:
                     continue
-                axis.plot([ax, bx], [ay, by], [az, bz], ':', lw=marker_size/10,
-                          color=self.colors[pauli], zorder=0)
-        for qubit, syndrome in zip(self._flatten(self.data["stab_qubits"]), syndromes):
+                line_style = '-' if 'IXYZ'[int(error)
+                                           ] != pauli.upper() and error != 0 else ':'
+                axis.plot([ax, bx], [ay, by], [az, bz], line_style, lw=marker_size/10,
+                          color=self.stabilizer_colors[pauli], zorder=0)
+        # Plot the syndrome qubits
+        syndromes = jax_get_syndromes(*self.transformation_matrix(), errors)
+        for qubit, syndrome in zip(self._flatten(self.data["synd_qubits"]), syndromes):
             ax, ay, az = qubit.location
             axis.plot(ax, ay, az, 's', ms=marker_size/2, c='black',
                       mfc='gray' if syndrome else 'black')
         # Create legend
-        axis.plot(0, 0, 0, ms=0, color=self.colors['X'], label='X stabilizer')
-        axis.plot(0, 0, 0, ms=0, color=self.colors['Y'], label='Y stabilizer')
-        axis.plot(0, 0, 0, ms=0, color=self.colors['Z'], label='Z stabilizer')
-        # axis.plot(0,0,0, '.', color='black', label='Data qubit', zorder=-1)
-        # axis.plot(0,0,0, 'x', color='black', label='Measure qubit', zorder=-1)
+        axis.plot(0, 0, 0, ms=0,
+                  color=self.stabilizer_colors['X'], label='X stabilizer')
+        axis.plot(0, 0, 0, ms=0,
+                  color=self.stabilizer_colors['Y'], label='Y stabilizer')
+        axis.plot(0, 0, 0, ms=0,
+                  color=self.stabilizer_colors['Z'], label='Z stabilizer')
         axis.legend(ncol=3)
+        # Configure x-axis
         axis.set_xlabel('X')
         xmin, xmax = axis.get_xlim()
         axis.set_xticks(range(int(np.floor(xmin)), int(np.ceil(xmax)+1), 1))
+        # Configure y-axis
         axis.set_ylabel('Y')
         ymin, ymax = axis.get_ylim()
         axis.set_yticks(range(int(np.floor(ymin)), int(np.ceil(ymax)+1), 1))
+        # Configure z-axis
         axis.set_zlabel('Z')
         axis.set_zlim(0, 1)
         axis.set_zticks([0, 1])
+        # Configure plot
         axis.view_init(elev, azim-90, roll)
         axis.set_aspect('equal')
         axis.set_title(title)
+        # Return the axis for further potentially further processing
         return axis
 
     def qc_cycle(self) -> QuantumCircuit:
@@ -236,17 +255,17 @@ class QEC():
         data = QuantumRegister(size=self._size(
             self.data["data_qubits"]), name="DataQubits")
         meas = AncillaRegister(size=self._size(
-            self.data["stab_qubits"]), name="MeasQubits")
+            self.data["synd_qubits"]), name="MeasQubits")
         synd = ClassicalRegister(size=len(meas), name="Syndrome")
         assign(data, self.data["data_qubits"])
-        assign(meas, self.data["stab_qubits"])
+        assign(meas, self.data["synd_qubits"])
         circ = QuantumCircuit(data, meas, synd)
         circ.reset(meas)
         circ.h(meas)
         circ.barrier(meas)
         for target in self._flatten(self.data["data_qubits"]):
             for (index, pauli) in target.acted_on_by:
-                control = self._from_index(self.data["stab_qubits"], index)
+                control = self._from_index(self.data["synd_qubits"], index)
                 if control.qubit is None:
                     continue
                 match pauli:
@@ -275,11 +294,41 @@ def surface_code_data(d: int) -> dict[str, list[list | Qubit]]:
                 [[i, j+1], P[(i+j) % 2]],
                 [[i+1, j+1], P[(i+j+1) % 2]]])
             for j in range(d)] for i in range(d)],
-        "stab_qubits": [[
+        "synd_qubits": [[
             Qubit((i-.5, j-.5, 0))
             if ((i+j+1) % 2 and (0 < i < d) or (i+j) % 2 and (0 < j < d))
             else Qubit((None, None, None))
             for j in range(d+1)] for i in range(d+1)],
+    }
+
+
+def surface_code_data_wls(d: int) -> dict[str, list[list | Qubit]]:
+    """
+    Generates the qec data for a distance d XZ surface code
+
+    wls: with logical stabilizers (detects if a logical X or Z error has occured)
+    """
+    P = ['X', 'Z']  # For the XZ surface code
+    return {
+        "data_qubits": [[
+            Qubit((i, j, 0), acted_on_by=[
+                    [[i, j], P[(i+j+1) % 2]],
+                    [[i+1, j], P[(i+j) % 2]],
+                    [[i, j+1], P[(i+j) % 2]],
+                    [[i+1, j+1], P[(i+j+1) % 2]]
+                ] + 
+                ([[[d+1], 'Z']] if i==0 else []) + 
+                ([[[d+2], 'X']] if j==0 else [])
+            )
+            for j in range(d)] for i in range(d)],
+        "synd_qubits": [[
+            Qubit((i-.5, j-.5, 0))
+            if ((i+j+1) % 2 and (0 < i < d) or (i+j) % 2 and (0 < j < d))
+            else Qubit((None, None, None))
+            for j in range(d+1)] for i in range(d+1)] + [
+                Qubit((-.2, d-.5, 0)),
+                Qubit((d-.5, -.2, 0))
+        ],
     }
 
 
@@ -290,7 +339,7 @@ def repetion_code_data(d: int, pauli: str):
                 [[i], pauli.upper()],
                 [[i+1], pauli.upper()]])
             for i in range(d)],
-        "stab_qubits": [
+        "synd_qubits": [
             Qubit((i-.5, 0, 0))
             if 0 < i < d
             else Qubit((None, None, None))

@@ -65,7 +65,7 @@ def jax_create_error_batch(px: float, py: float, pz: float, size: int, batch_siz
 
 class Qubit():
 
-    def __init__(self, location: tuple, acted_on_by: list = []) -> None:
+    def __init__(self, location: tuple, acted_on_by: list = [], name: str = None, connections=True) -> None:
         """
         location: tuple (x,y,z)
         acted_on_by: list of dicts {index_of_stabilizer_qubit, pauli_action}
@@ -75,6 +75,8 @@ class Qubit():
         self.interior_color = 'white'
         self.qubit = None
         self.index = None
+        self.name = name
+        self.connections = connections
 
     def deform(self, deformation: dict[str, str]) -> None:
         for i, (index, pauli) in enumerate(self.acted_on_by):
@@ -192,21 +194,34 @@ class QEC():
                       mfc=self.error_colors[int(error)])
             # Plot the stabilizers between the data and syndrome qubits
             for (index, pauli) in qubit.acted_on_by:
-                bx, by, bz = self._from_index(
-                    self.data["synd_qubits"], index).location
+                target = self._from_index(
+                    self.data["synd_qubits"], index)
+                bx, by, bz = target.location
                 # Check that the syndrome qubit is not hidden
                 if bx is None:
                     continue
-                line_style = '-' if 'IXYZ'[int(error)
-                                           ] != pauli.upper() and error != 0 else ':'
-                axis.plot([ax, bx], [ay, by], [az, bz], line_style, lw=marker_size/10,
-                          color=self.stabilizer_colors[pauli], zorder=0)
+                line_style = '-' if \
+                    'IXYZ'[int(error)] != pauli.upper() and error != 0 \
+                    else ':'
+                if target.name is None:
+                    axis.plot([ax, bx], [ay, by], [az, bz], line_style, lw=marker_size/10,
+                            color=self.stabilizer_colors[pauli], zorder=0)
+                else:
+                    axis.plot([ax, bx], [ay, by], [az, bz], line_style, lw=marker_size/10,
+                            color=self.stabilizer_colors[pauli], zorder=0, alpha=.1)
         # Plot the syndrome qubits
         syndromes = jax_get_syndromes(*self.transformation_matrix(), errors)
         for qubit, syndrome in zip(self._flatten(self.data["synd_qubits"]), syndromes):
             ax, ay, az = qubit.location
-            axis.plot(ax, ay, az, 's', ms=marker_size/2, c='black',
-                      mfc='gray' if syndrome else 'black')
+            if qubit.name is None:
+                axis.plot(ax, ay, az, 's', ms=marker_size/2, c='black',
+                          mfc='gray' if syndrome else 'black')
+            else:
+                axis.plot(ax, ay, az, 'h', ms=marker_size, c='black',
+                          mfc='gray' if syndrome else 'black')
+                axis.text(ax, ay, az, s=qubit.name, fontsize=marker_size/2,
+                          ha='center', va='center', zorder=2,
+                          color='black' if syndrome else 'gray')
         # Create legend
         axis.plot(0, 0, 0, ms=0,
                   color=self.stabilizer_colors['X'], label='X stabilizer')
@@ -312,13 +327,13 @@ def surface_code_data_wls(d: int) -> dict[str, list[list | Qubit]]:
     return {
         "data_qubits": [[
             Qubit((i, j, 0), acted_on_by=[
-                    [[i, j], P[(i+j+1) % 2]],
-                    [[i+1, j], P[(i+j) % 2]],
-                    [[i, j+1], P[(i+j) % 2]],
-                    [[i+1, j+1], P[(i+j+1) % 2]]
-                ] + 
-                ([[[d+1], 'Z']] if i==0 else []) + 
-                ([[[d+2], 'X']] if j==0 else [])
+                [[i, j], P[(i+j+1) % 2]],
+                [[i+1, j], P[(i+j) % 2]],
+                [[i, j+1], P[(i+j) % 2]],
+                [[i+1, j+1], P[(i+j+1) % 2]]
+            ] +
+                ([[[d+1], 'Z']] if i == 0 else []) +
+                ([[[d+2], 'X']] if j == 0 else [])
             )
             for j in range(d)] for i in range(d)],
         "synd_qubits": [[
@@ -326,8 +341,8 @@ def surface_code_data_wls(d: int) -> dict[str, list[list | Qubit]]:
             if ((i+j+1) % 2 and (0 < i < d) or (i+j) % 2 and (0 < j < d))
             else Qubit((None, None, None))
             for j in range(d+1)] for i in range(d+1)] + [
-                Qubit((-.2, d-.5, 0)),
-                Qubit((d-.5, -.2, 0))
+                Qubit((-1.5, -1.5, 0), name="X", connections=False),
+                Qubit((-.5, -1.5, 0), name="Z", connections=False)
         ],
     }
 

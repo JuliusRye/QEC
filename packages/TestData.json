@@ -21,7 +21,9 @@
                             0
                         ]
                     }
-                ]
+                ],
+                "deformation": "YZ",
+                "index": 0
             },
             {
                 "loc": [
@@ -34,7 +36,7 @@
                         "group": "Type A syndrome qubits",
                         "idxs": [
                             0,
-                            2
+                            3
                         ]
                     },
                     {
@@ -43,34 +45,14 @@
                             0
                         ]
                     }
-                ]
+                ],
+                "deformation": "XZ",
+                "index": 1
             },
             {
                 "loc": [
                     0,
                     2,
-                    0
-                ],
-                "conn": [
-                    {
-                        "group": "Type A syndrome qubits",
-                        "idxs": [
-                            1,
-                            2
-                        ]
-                    },
-                    {
-                        "group": "Type B syndrome qubits",
-                        "idxs": [
-                            1
-                        ]
-                    }
-                ]
-            },
-            {
-                "loc": [
-                    0,
-                    3,
                     0
                 ],
                 "conn": [
@@ -87,7 +69,33 @@
                             1
                         ]
                     }
-                ]
+                ],
+                "deformation": "YZ",
+                "index": 2
+            },
+            {
+                "loc": [
+                    0,
+                    3,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            1,
+                            4
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            1
+                        ]
+                    }
+                ],
+                "deformation": "XZ",
+                "index": 3
             },
             {
                 "loc": [
@@ -99,7 +107,8 @@
                     {
                         "group": "Type A syndrome qubits",
                         "idxs": [
-                            3
+                            2,
+                            4
                         ]
                     },
                     {
@@ -108,57 +117,14 @@
                             2
                         ]
                     }
-                ]
+                ],
+                "deformation": "YZ",
+                "index": 4
             },
             {
                 "loc": [
-                    1,
                     0,
-                    0
-                ],
-                "conn": [
-                    {
-                        "group": "Type A syndrome qubits",
-                        "idxs": [
-                            4
-                        ]
-                    },
-                    {
-                        "group": "Type B syndrome qubits",
-                        "idxs": [
-                            0,
-                            3
-                        ]
-                    }
-                ]
-            },
-            {
-                "loc": [
-                    1,
-                    1,
-                    0
-                ],
-                "conn": [
-                    {
-                        "group": "Type A syndrome qubits",
-                        "idxs": [
-                            2,
-                            4
-                        ]
-                    },
-                    {
-                        "group": "Type B syndrome qubits",
-                        "idxs": [
-                            0,
-                            4
-                        ]
-                    }
-                ]
-            },
-            {
-                "loc": [
-                    1,
-                    2,
+                    5,
                     0
                 ],
                 "conn": [
@@ -172,16 +138,64 @@
                     {
                         "group": "Type B syndrome qubits",
                         "idxs": [
-                            1,
-                            4
+                            2
                         ]
                     }
-                ]
+                ],
+                "deformation": "XZ",
+                "index": 5
+            },
+            {
+                "loc": [
+                    0,
+                    6,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            5
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            3
+                        ]
+                    }
+                ],
+                "deformation": "YZ",
+                "index": 6
             },
             {
                 "loc": [
                     1,
-                    3,
+                    0,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            6
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            0,
+                            4
+                        ]
+                    }
+                ],
+                "deformation": "I",
+                "index": 7
+            },
+            {
+                "loc": [
+                    1,
+                    1,
                     0
                 ],
                 "conn": [
@@ -189,7 +203,32 @@
                         "group": "Type A syndrome qubits",
                         "idxs": [
                             3,
+                            6
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            0,
                             5
+                        ]
+                    }
+                ],
+                "deformation": "YZ",
+                "index": 8
+            },
+            {
+                "loc": [
+                    1,
+                    2,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            3,
+                            7
                         ]
                     },
                     {
@@ -199,7 +238,34 @@
                             5
                         ]
                     }
-                ]
+                ],
+                "deformation": "I",
+                "index": 9
+            },
+            {
+                "loc": [
+                    1,
+                    3,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            4,
+                            7
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            1,
+                            6
+                        ]
+                    }
+                ],
+                "deformation": "YZ",
+                "index": 10
             },
             {
                 "loc": [
@@ -211,134 +277,73 @@
                     {
                         "group": "Type A syndrome qubits",
                         "idxs": [
-                            3
+                            4,
+                            8
                         ]
                     },
                     {
                         "group": "Type B syndrome qubits",
                         "idxs": [
                             2,
-                            5
+                            6
                         ]
                     }
-                ]
+                ],
+                "deformation": "I",
+                "index": 11
             },
             {
                 "loc": [
-                    2,
-                    0,
+                    1,
+                    5,
                     0
                 ],
                 "conn": [
                     {
                         "group": "Type A syndrome qubits",
                         "idxs": [
-                            4
+                            5,
+                            8
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            2,
+                            7
+                        ]
+                    }
+                ],
+                "deformation": "YZ",
+                "index": 12
+            },
+            {
+                "loc": [
+                    1,
+                    6,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            5
                         ]
                     },
                     {
                         "group": "Type B syndrome qubits",
                         "idxs": [
                             3,
-                            6
-                        ]
-                    }
-                ]
-            },
-            {
-                "loc": [
-                    2,
-                    1,
-                    0
-                ],
-                "conn": [
-                    {
-                        "group": "Type A syndrome qubits",
-                        "idxs": [
-                            4,
-                            6
-                        ]
-                    },
-                    {
-                        "group": "Type B syndrome qubits",
-                        "idxs": [
-                            4,
-                            6
-                        ]
-                    }
-                ]
-            },
-            {
-                "loc": [
-                    2,
-                    2,
-                    0
-                ],
-                "conn": [
-                    {
-                        "group": "Type A syndrome qubits",
-                        "idxs": [
-                            5,
-                            6
-                        ]
-                    },
-                    {
-                        "group": "Type B syndrome qubits",
-                        "idxs": [
-                            4,
                             7
                         ]
                     }
-                ]
+                ],
+                "deformation": "I",
+                "index": 13
             },
             {
                 "loc": [
                     2,
-                    3,
-                    0
-                ],
-                "conn": [
-                    {
-                        "group": "Type A syndrome qubits",
-                        "idxs": [
-                            5,
-                            7
-                        ]
-                    },
-                    {
-                        "group": "Type B syndrome qubits",
-                        "idxs": [
-                            5,
-                            7
-                        ]
-                    }
-                ]
-            },
-            {
-                "loc": [
-                    2,
-                    4,
-                    0
-                ],
-                "conn": [
-                    {
-                        "group": "Type A syndrome qubits",
-                        "idxs": [
-                            7
-                        ]
-                    },
-                    {
-                        "group": "Type B syndrome qubits",
-                        "idxs": [
-                            5,
-                            8
-                        ]
-                    }
-                ]
-            },
-            {
-                "loc": [
-                    3,
                     0,
                     0
                 ],
@@ -346,21 +351,23 @@
                     {
                         "group": "Type A syndrome qubits",
                         "idxs": [
-                            8
+                            6
                         ]
                     },
                     {
                         "group": "Type B syndrome qubits",
                         "idxs": [
-                            6,
-                            9
+                            4,
+                            8
                         ]
                     }
-                ]
+                ],
+                "deformation": "YZ",
+                "index": 14
             },
             {
                 "loc": [
-                    3,
+                    2,
                     1,
                     0
                 ],
@@ -369,21 +376,23 @@
                         "group": "Type A syndrome qubits",
                         "idxs": [
                             6,
-                            8
+                            9
                         ]
                     },
                     {
                         "group": "Type B syndrome qubits",
                         "idxs": [
-                            6,
-                            10
+                            5,
+                            8
                         ]
                     }
-                ]
+                ],
+                "deformation": "XZ",
+                "index": 15
             },
             {
                 "loc": [
-                    3,
+                    2,
                     2,
                     0
                 ],
@@ -391,89 +400,50 @@
                     {
                         "group": "Type A syndrome qubits",
                         "idxs": [
-                            6,
+                            7,
                             9
                         ]
                     },
                     {
                         "group": "Type B syndrome qubits",
+                        "idxs": [
+                            5,
+                            9
+                        ]
+                    }
+                ],
+                "deformation": "YZ",
+                "index": 16
+            },
+            {
+                "loc": [
+                    2,
+                    3,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
                         "idxs": [
                             7,
                             10
                         ]
-                    }
-                ]
-            },
-            {
-                "loc": [
-                    3,
-                    3,
-                    0
-                ],
-                "conn": [
-                    {
-                        "group": "Type A syndrome qubits",
-                        "idxs": [
-                            7,
-                            9
-                        ]
                     },
                     {
                         "group": "Type B syndrome qubits",
                         "idxs": [
-                            7,
-                            11
-                        ]
-                    }
-                ]
-            },
-            {
-                "loc": [
-                    3,
-                    4,
-                    0
-                ],
-                "conn": [
-                    {
-                        "group": "Type A syndrome qubits",
-                        "idxs": [
-                            7
-                        ]
-                    },
-                    {
-                        "group": "Type B syndrome qubits",
-                        "idxs": [
-                            8,
-                            11
-                        ]
-                    }
-                ]
-            },
-            {
-                "loc": [
-                    4,
-                    0,
-                    0
-                ],
-                "conn": [
-                    {
-                        "group": "Type A syndrome qubits",
-                        "idxs": [
-                            8
-                        ]
-                    },
-                    {
-                        "group": "Type B syndrome qubits",
-                        "idxs": [
+                            6,
                             9
                         ]
                     }
-                ]
+                ],
+                "deformation": "XZ",
+                "index": 17
             },
             {
                 "loc": [
+                    2,
                     4,
-                    1,
                     0
                 ],
                 "conn": [
@@ -487,10 +457,284 @@
                     {
                         "group": "Type B syndrome qubits",
                         "idxs": [
+                            6,
                             10
                         ]
                     }
-                ]
+                ],
+                "deformation": "YZ",
+                "index": 18
+            },
+            {
+                "loc": [
+                    2,
+                    5,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            8,
+                            11
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            7,
+                            10
+                        ]
+                    }
+                ],
+                "deformation": "XZ",
+                "index": 19
+            },
+            {
+                "loc": [
+                    2,
+                    6,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            11
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            7,
+                            11
+                        ]
+                    }
+                ],
+                "deformation": "YZ",
+                "index": 20
+            },
+            {
+                "loc": [
+                    3,
+                    0,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            12
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            8,
+                            12
+                        ]
+                    }
+                ],
+                "deformation": "I",
+                "index": 21
+            },
+            {
+                "loc": [
+                    3,
+                    1,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            9,
+                            12
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            8,
+                            13
+                        ]
+                    }
+                ],
+                "deformation": "YZ",
+                "index": 22
+            },
+            {
+                "loc": [
+                    3,
+                    2,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            9,
+                            13
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            9,
+                            13
+                        ]
+                    }
+                ],
+                "deformation": "I",
+                "index": 23
+            },
+            {
+                "loc": [
+                    3,
+                    3,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            10,
+                            13
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            9,
+                            14
+                        ]
+                    }
+                ],
+                "deformation": "YZ",
+                "index": 24
+            },
+            {
+                "loc": [
+                    3,
+                    4,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            10,
+                            14
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            10,
+                            14
+                        ]
+                    }
+                ],
+                "deformation": "I",
+                "index": 25
+            },
+            {
+                "loc": [
+                    3,
+                    5,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            11,
+                            14
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            10,
+                            15
+                        ]
+                    }
+                ],
+                "deformation": "YZ",
+                "index": 26
+            },
+            {
+                "loc": [
+                    3,
+                    6,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            11
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            11,
+                            15
+                        ]
+                    }
+                ],
+                "deformation": "I",
+                "index": 27
+            },
+            {
+                "loc": [
+                    4,
+                    0,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            12
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            12,
+                            16
+                        ]
+                    }
+                ],
+                "deformation": "YZ",
+                "index": 28
+            },
+            {
+                "loc": [
+                    4,
+                    1,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            12,
+                            15
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            13,
+                            16
+                        ]
+                    }
+                ],
+                "deformation": "XZ",
+                "index": 29
             },
             {
                 "loc": [
@@ -502,17 +746,20 @@
                     {
                         "group": "Type A syndrome qubits",
                         "idxs": [
-                            9,
-                            10
+                            13,
+                            15
                         ]
                     },
                     {
                         "group": "Type B syndrome qubits",
                         "idxs": [
-                            10
+                            13,
+                            17
                         ]
                     }
-                ]
+                ],
+                "deformation": "YZ",
+                "index": 30
             },
             {
                 "loc": [
@@ -524,17 +771,20 @@
                     {
                         "group": "Type A syndrome qubits",
                         "idxs": [
-                            9,
-                            11
+                            13,
+                            16
                         ]
                     },
                     {
                         "group": "Type B syndrome qubits",
                         "idxs": [
-                            11
+                            14,
+                            17
                         ]
                     }
-                ]
+                ],
+                "deformation": "XZ",
+                "index": 31
             },
             {
                 "loc": [
@@ -546,16 +796,408 @@
                     {
                         "group": "Type A syndrome qubits",
                         "idxs": [
-                            11
+                            14,
+                            16
                         ]
                     },
                     {
                         "group": "Type B syndrome qubits",
                         "idxs": [
-                            11
+                            14,
+                            18
                         ]
                     }
-                ]
+                ],
+                "deformation": "YZ",
+                "index": 32
+            },
+            {
+                "loc": [
+                    4,
+                    5,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            14,
+                            17
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            15,
+                            18
+                        ]
+                    }
+                ],
+                "deformation": "XZ",
+                "index": 33
+            },
+            {
+                "loc": [
+                    4,
+                    6,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            17
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            15,
+                            19
+                        ]
+                    }
+                ],
+                "deformation": "YZ",
+                "index": 34
+            },
+            {
+                "loc": [
+                    5,
+                    0,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            18
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            16,
+                            20
+                        ]
+                    }
+                ],
+                "deformation": "I",
+                "index": 35
+            },
+            {
+                "loc": [
+                    5,
+                    1,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            15,
+                            18
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            16,
+                            21
+                        ]
+                    }
+                ],
+                "deformation": "YZ",
+                "index": 36
+            },
+            {
+                "loc": [
+                    5,
+                    2,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            15,
+                            19
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            17,
+                            21
+                        ]
+                    }
+                ],
+                "deformation": "I",
+                "index": 37
+            },
+            {
+                "loc": [
+                    5,
+                    3,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            16,
+                            19
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            17,
+                            22
+                        ]
+                    }
+                ],
+                "deformation": "YZ",
+                "index": 38
+            },
+            {
+                "loc": [
+                    5,
+                    4,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            16,
+                            20
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            18,
+                            22
+                        ]
+                    }
+                ],
+                "deformation": "I",
+                "index": 39
+            },
+            {
+                "loc": [
+                    5,
+                    5,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            17,
+                            20
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            18,
+                            23
+                        ]
+                    }
+                ],
+                "deformation": "YZ",
+                "index": 40
+            },
+            {
+                "loc": [
+                    5,
+                    6,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            17
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            19,
+                            23
+                        ]
+                    }
+                ],
+                "deformation": "I",
+                "index": 41
+            },
+            {
+                "loc": [
+                    6,
+                    0,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            18
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            20
+                        ]
+                    }
+                ],
+                "deformation": "YZ",
+                "index": 42
+            },
+            {
+                "loc": [
+                    6,
+                    1,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            18,
+                            21
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            21
+                        ]
+                    }
+                ],
+                "deformation": "XZ",
+                "index": 43
+            },
+            {
+                "loc": [
+                    6,
+                    2,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            19,
+                            21
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            21
+                        ]
+                    }
+                ],
+                "deformation": "YZ",
+                "index": 44
+            },
+            {
+                "loc": [
+                    6,
+                    3,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            19,
+                            22
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            22
+                        ]
+                    }
+                ],
+                "deformation": "XZ",
+                "index": 45
+            },
+            {
+                "loc": [
+                    6,
+                    4,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            20,
+                            22
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            22
+                        ]
+                    }
+                ],
+                "deformation": "YZ",
+                "index": 46
+            },
+            {
+                "loc": [
+                    6,
+                    5,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            20,
+                            23
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            23
+                        ]
+                    }
+                ],
+                "deformation": "XZ",
+                "index": 47
+            },
+            {
+                "loc": [
+                    6,
+                    6,
+                    0
+                ],
+                "conn": [
+                    {
+                        "group": "Type A syndrome qubits",
+                        "idxs": [
+                            23
+                        ]
+                    },
+                    {
+                        "group": "Type B syndrome qubits",
+                        "idxs": [
+                            23
+                        ]
+                    }
+                ],
+                "deformation": "YZ",
+                "index": 48
             }
         ],
         "plt_style": {
@@ -588,84 +1230,192 @@
                     -0.5,
                     0.5,
                     0
-                ]
+                ],
+                "index": 0
             },
             {
                 "loc": [
                     -0.5,
                     2.5,
                     0
-                ]
+                ],
+                "index": 1
+            },
+            {
+                "loc": [
+                    -0.5,
+                    4.5,
+                    0
+                ],
+                "index": 2
             },
             {
                 "loc": [
                     0.5,
                     1.5,
                     0
-                ]
+                ],
+                "index": 3
             },
             {
                 "loc": [
                     0.5,
                     3.5,
                     0
-                ]
+                ],
+                "index": 4
+            },
+            {
+                "loc": [
+                    0.5,
+                    5.5,
+                    0
+                ],
+                "index": 5
             },
             {
                 "loc": [
                     1.5,
                     0.5,
                     0
-                ]
+                ],
+                "index": 6
             },
             {
                 "loc": [
                     1.5,
                     2.5,
                     0
-                ]
+                ],
+                "index": 7
+            },
+            {
+                "loc": [
+                    1.5,
+                    4.5,
+                    0
+                ],
+                "index": 8
             },
             {
                 "loc": [
                     2.5,
                     1.5,
                     0
-                ]
+                ],
+                "index": 9
             },
             {
                 "loc": [
                     2.5,
                     3.5,
                     0
-                ]
+                ],
+                "index": 10
+            },
+            {
+                "loc": [
+                    2.5,
+                    5.5,
+                    0
+                ],
+                "index": 11
             },
             {
                 "loc": [
                     3.5,
                     0.5,
                     0
-                ]
+                ],
+                "index": 12
             },
             {
                 "loc": [
                     3.5,
                     2.5,
                     0
-                ]
+                ],
+                "index": 13
+            },
+            {
+                "loc": [
+                    3.5,
+                    4.5,
+                    0
+                ],
+                "index": 14
             },
             {
                 "loc": [
                     4.5,
                     1.5,
                     0
-                ]
+                ],
+                "index": 15
             },
             {
                 "loc": [
                     4.5,
                     3.5,
                     0
-                ]
+                ],
+                "index": 16
+            },
+            {
+                "loc": [
+                    4.5,
+                    5.5,
+                    0
+                ],
+                "index": 17
+            },
+            {
+                "loc": [
+                    5.5,
+                    0.5,
+                    0
+                ],
+                "index": 18
+            },
+            {
+                "loc": [
+                    5.5,
+                    2.5,
+                    0
+                ],
+                "index": 19
+            },
+            {
+                "loc": [
+                    5.5,
+                    4.5,
+                    0
+                ],
+                "index": 20
+            },
+            {
+                "loc": [
+                    6.5,
+                    1.5,
+                    0
+                ],
+                "index": 21
+            },
+            {
+                "loc": [
+                    6.5,
+                    3.5,
+                    0
+                ],
+                "index": 22
+            },
+            {
+                "loc": [
+                    6.5,
+                    5.5,
+                    0
+                ],
+                "index": 23
             }
         ],
         "plt_style": {
@@ -674,8 +1424,8 @@
             "mec": "#000000"
         },
         "state_colors": [
-            "#202000",
-            "#f0f000"
+            "#2B2A33",
+            "#D76C43"
         ]
     },
     "Type B syndrome qubits": {
@@ -687,94 +1437,202 @@
                     0.5,
                     0.5,
                     0
-                ]
+                ],
+                "index": 0
             },
             {
                 "loc": [
                     0.5,
                     2.5,
                     0
-                ]
+                ],
+                "index": 1
             },
             {
                 "loc": [
                     0.5,
                     4.5,
                     0
-                ]
+                ],
+                "index": 2
+            },
+            {
+                "loc": [
+                    0.5,
+                    6.5,
+                    0
+                ],
+                "index": 3
             },
             {
                 "loc": [
                     1.5,
                     -0.5,
                     0
-                ]
+                ],
+                "index": 4
             },
             {
                 "loc": [
                     1.5,
                     1.5,
                     0
-                ]
+                ],
+                "index": 5
             },
             {
                 "loc": [
                     1.5,
                     3.5,
                     0
-                ]
+                ],
+                "index": 6
+            },
+            {
+                "loc": [
+                    1.5,
+                    5.5,
+                    0
+                ],
+                "index": 7
             },
             {
                 "loc": [
                     2.5,
                     0.5,
                     0
-                ]
+                ],
+                "index": 8
             },
             {
                 "loc": [
                     2.5,
                     2.5,
                     0
-                ]
+                ],
+                "index": 9
             },
             {
                 "loc": [
                     2.5,
                     4.5,
                     0
-                ]
+                ],
+                "index": 10
+            },
+            {
+                "loc": [
+                    2.5,
+                    6.5,
+                    0
+                ],
+                "index": 11
             },
             {
                 "loc": [
                     3.5,
                     -0.5,
                     0
-                ]
+                ],
+                "index": 12
             },
             {
                 "loc": [
                     3.5,
                     1.5,
                     0
-                ]
+                ],
+                "index": 13
             },
             {
                 "loc": [
                     3.5,
                     3.5,
                     0
-                ]
+                ],
+                "index": 14
+            },
+            {
+                "loc": [
+                    3.5,
+                    5.5,
+                    0
+                ],
+                "index": 15
+            },
+            {
+                "loc": [
+                    4.5,
+                    0.5,
+                    0
+                ],
+                "index": 16
+            },
+            {
+                "loc": [
+                    4.5,
+                    2.5,
+                    0
+                ],
+                "index": 17
+            },
+            {
+                "loc": [
+                    4.5,
+                    4.5,
+                    0
+                ],
+                "index": 18
+            },
+            {
+                "loc": [
+                    4.5,
+                    6.5,
+                    0
+                ],
+                "index": 19
+            },
+            {
+                "loc": [
+                    5.5,
+                    -0.5,
+                    0
+                ],
+                "index": 20
+            },
+            {
+                "loc": [
+                    5.5,
+                    1.5,
+                    0
+                ],
+                "index": 21
+            },
+            {
+                "loc": [
+                    5.5,
+                    3.5,
+                    0
+                ],
+                "index": 22
+            },
+            {
+                "loc": [
+                    5.5,
+                    5.5,
+                    0
+                ],
+                "index": 23
             }
         ],
         "plt_style": {
-            "marker": "s",
+            "marker": "D",
             "ls": "",
             "mec": "#000000"
         },
         "state_colors": [
-            "#002020",
-            "#00f0f0"
+            "#2B2A33",
+            "#D76C43"
         ]
     }
 }

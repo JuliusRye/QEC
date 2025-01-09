@@ -12,12 +12,12 @@ from qiskit.quantum_info import StabilizerState, Statevector
 from icecream import ic  # For debugging
 
 deformations = {  # The different Clifford deformations (neglecting the phase)
-    'I': {'X': 'X', 'Y': 'Y', 'Z': 'Z', 'color': 'black'},
-    'XZ': {'X': 'Z', 'Y': 'Y', 'Z': 'X', 'color': '#43A2D9'},
-    'YZ': {'X': 'X', 'Y': 'Z', 'Z': 'Y', 'color': '#FF604B'},
-    'XY': {'X': 'Y', 'Y': 'X', 'Z': 'Z', 'color': '#43D972'},
-    'XYZ': {'X': 'Y', 'Y': 'Z', 'Z': 'X', 'color': 'gray'},
-    'XZY': {'X': 'Z', 'Y': 'X', 'Z': 'Y', 'color': 'gray'}
+    'I': {'I': 'I', 'X': 'X', 'Y': 'Y', 'Z': 'Z', 'color': 'black'},
+    'XZ': {'I': 'I', 'X': 'Z', 'Y': 'Y', 'Z': 'X', 'color': '#43A2D9'},
+    'YZ': {'I': 'I', 'X': 'X', 'Y': 'Z', 'Z': 'Y', 'color': '#FF604B'},
+    'XY': {'I': 'I', 'X': 'Y', 'Y': 'X', 'Z': 'Z', 'color': '#43D972'},
+    'XYZ': {'I': 'I', 'X': 'Y', 'Y': 'Z', 'Z': 'X', 'color': 'gray'},
+    'XZY': {'I': 'I', 'X': 'Z', 'Y': 'X', 'Z': 'Y', 'color': 'gray'}
 }
 
 

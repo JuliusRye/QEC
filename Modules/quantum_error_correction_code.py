@@ -31,7 +31,9 @@ class QEC:
         self.lx_original, self.lz_original = logical_parity_matrix
 
         self.deformation = jnp.zeros(shape=self.hx.shape[1], dtype=jnp.int32)
-        self.mask = mask
+        self.mask_x = mask[0]
+        self.mask_z = mask[1]
+        self.mask = mask[0] | mask[1]
 
     def apply_deformation(
         self,
@@ -40,11 +42,11 @@ class QEC:
 
         transformations = jnp.array([
             [[1, 0], [0, 1]],  # I
-            [[1, 0], [1, 1]],  # X-Y
-            [[1, 1], [0, 1]],  # Y-Z
+            [[1, 1], [0, 1]],  # X-Y
+            [[1, 0], [1, 1]],  # Y-Z
             [[0, 1], [1, 0]],  # X-Z
-            [[1, 1], [1, 0]],  # X-Y-Z
-            [[0, 1], [1, 1]],  # X-Z-Y
+            [[0, 1], [1, 1]],  # X-Y-Z
+            [[1, 1], [1, 0]],  # X-Z-Y
         ])
 
         A = jnp.append(self.hx_original, self.lx_original, axis=0)
@@ -253,18 +255,18 @@ def surface_code(L: int) -> QEC:
     # Create mask to remove excess syndrome qubits
     mask = jnp.zeros(shape=(L+1, L+1), dtype=jnp.bool)
     # Mask for the x-stabilizers
-    mask = mask.at[1:-1:2, ::2].set(True).at[2:-1:2, 1::2].set(True)
+    mask_x = mask.at[1:-1:2, ::2].set(True).at[2:-1:2, 1::2].set(True)
     # Mask for the z-stabilizers
-    mask = mask.at[1::2, 1:-1:2].set(True).at[::2, 2:-1:2].set(True)
+    mask_z = mask.at[1::2, 1:-1:2].set(True).at[::2, 2:-1:2].set(True)
     # Remove excess syndrome qubits
-    syndrome_qubit_loc = syndrome_qubit_loc[jnp.ravel(mask)]
-    hx = hx[jnp.ravel(mask), :]
-    hz = hz[jnp.ravel(mask), :]
+    syndrome_qubit_loc = syndrome_qubit_loc[jnp.ravel(mask_z | mask_x)]
+    hx = hx[jnp.ravel(mask_z | mask_x), :]
+    hz = hz[jnp.ravel(mask_z | mask_x), :]
     return QEC(
         data_qubit_loc,
         syndrome_qubit_loc,
         parity_check_matrix=jnp.append(hx[None, :, :], hz[None, :, :], axis=0),
         logical_parity_matrix=jnp.append(
             logical_x[None, :, :], logical_z[None, :, :], axis=0),
-        mask=mask,
+        mask=(mask_x, mask_z),
     )

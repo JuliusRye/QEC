@@ -71,3 +71,8 @@ class PMLD:
         syndromes: jnp.ndarray,
     ):
         return vmap(self.decode)(syndromes)
+
+    def exact_logical_error_rate(
+        self,
+    ):
+        return 1 - self.likelihood_table.max(axis=1).sum()

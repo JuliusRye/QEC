@@ -1,6 +1,6 @@
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
-from jax import random, jit
+from jax import random, jit, vmap
 from functools import partial
 from matplotlib.colors import ListedColormap
 
@@ -23,10 +23,48 @@ class QEC:
         """
         self.data_qubit_loc = data_qubit_loc
         self.syndrome_qubit_loc = syndrome_qubit_loc
+
         self.hx, self.hz = parity_check_matrix
         self.lx, self.lz = logical_parity_matrix
+
+        self.hx_original, self.hz_original = parity_check_matrix
+        self.lx_original, self.lz_original = logical_parity_matrix
+
         self.deformation = jnp.zeros(shape=self.hx.shape[1], dtype=jnp.int32)
         self.mask = mask
+
+    def apply_deformation(
+        self,
+        D: jnp.ndarray,
+    ):
+
+        transformations = jnp.array([
+            [[1, 0], [0, 1]],  # I
+            [[1, 0], [1, 1]],  # X-Y
+            [[1, 1], [0, 1]],  # Y-Z
+            [[0, 1], [1, 0]],  # X-Z
+            [[1, 1], [1, 0]],  # X-Y-Z
+            [[0, 1], [1, 1]],  # X-Z-Y
+        ])
+
+        A = jnp.append(self.hx_original, self.lx_original, axis=0)
+        B = jnp.append(self.hz_original, self.lz_original, axis=0)
+
+        # Apply transformation column-wise
+        A_prime, B_prime = vmap(
+            lambda A, B, Di: jnp.dot(Di, jnp.stack([A, B])) % 2,
+            in_axes=(1, 1, 0),
+            out_axes=2
+        )(
+            A,
+            B,
+            transformations[D]
+        )
+
+        self.hx, self.lx = A_prime[:self.hx.shape[0]
+                                   ], A_prime[self.hx.shape[0]:]
+        self.hz, self.lz = B_prime[:self.hx.shape[0]
+                                   ], B_prime[self.hx.shape[0]:]
 
     @partial(jit, static_argnames=("self"))
     def error(

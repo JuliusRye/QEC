@@ -24,21 +24,17 @@ class QEC:
         self.data_qubit_loc = data_qubit_loc
         self.syndrome_qubit_loc = syndrome_qubit_loc
 
-        self.hx, self.hz = parity_check_matrix
-        self.lx, self.lz = logical_parity_matrix
-
         self.hx_original, self.hz_original = parity_check_matrix
         self.lx_original, self.lz_original = logical_parity_matrix
 
-        self.deformation = jnp.zeros(shape=self.hx.shape[1], dtype=jnp.int32)
-        self.mask_x = mask[0]
-        self.mask_z = mask[1]
-        self.mask = mask[0] | mask[1]
+        self.deformation = jnp.zeros(
+            shape=self.hx_original.shape[1], dtype=jnp.int32)
+        self.mask = mask
 
-    def apply_deformation(
+    def deformation_parity_info(
         self,
         D: jnp.ndarray,
-    ):
+    ) -> tuple[jnp.ndarray]:
 
         transformations = jnp.array([
             [[1, 0], [0, 1]],  # I
@@ -63,19 +59,27 @@ class QEC:
             transformations[D]
         )
 
-        self.hx, self.lx = A_prime[:self.hx.shape[0]
-                                   ], A_prime[self.hx.shape[0]:]
-        self.hz, self.lz = B_prime[:self.hx.shape[0]
-                                   ], B_prime[self.hx.shape[0]:]
+        m, n = self.hx_original.shape
+
+        hx = A_prime[:m]
+        lx = A_prime[m:]
+
+        hz = B_prime[:m]
+        lz = B_prime[m:]
+
+        parity_info = (hx, hz, lx, lz)
+        return parity_info
 
     @partial(jit, static_argnames=("self"))
     def error(
         self,
         key,
         probabilities: jnp.ndarray,
+        parity_info: tuple[jnp.ndarray],
     ) -> tuple[jnp.ndarray]:
+        hx, hz, lx, lz = parity_info
         px, py, pz = probabilities
-        n = self.hx.shape[1]
+        n = hx.shape[1]
         rv = random.uniform(key, shape=n)
         error_x = rv < (px + py)
         error_z = jnp.logical_and(
@@ -90,23 +94,26 @@ class QEC:
     @partial(jit, static_argnames=("self"))
     def syndrome(
         self,
-        error: (jnp.ndarray)
-    ) -> jnp.ndarray:
+        error: jnp.ndarray,
+        parity_info: tuple[jnp.ndarray],
+    ) -> tuple[jnp.ndarray]:
+        hx, hz, lx, lz = parity_info
         # Calculate syndrome
-        parity_x = jnp.matmul(self.hx, error[0])
-        parity_z = jnp.matmul(self.hz, error[1])
+        parity_x = jnp.matmul(hx, error[0])
+        parity_z = jnp.matmul(hz, error[1])
         syndrome = (parity_x + parity_z) % 2
         # Calculate logicals
-        parity_x = jnp.matmul(self.lx, error[0])
-        parity_z = jnp.matmul(self.lz, error[1])
+        parity_x = jnp.matmul(lx, error[0])
+        parity_z = jnp.matmul(lz, error[1])
         logicals = (parity_x + parity_z) % 2
         return syndrome, logicals
 
     @partial(jit, static_argnames=("self"))
     def syndrome_img(
         self,
-        error: (jnp.ndarray)
-    ) -> jnp.ndarray:
+        error: (jnp.ndarray),
+        parity_info: tuple[jnp.ndarray],
+    ) -> tuple[jnp.ndarray]:
         """
         Creates an image of the syndrome from the error with:
 
@@ -116,7 +123,7 @@ class QEC:
 
         1: Detected no syndrome
         """
-        syndrome, logicals = self.syndrome(error)
+        syndrome, logicals = self.syndrome(error, parity_info)
         syndrome = syndrome.astype(jnp.int32)
         img = jnp.zeros_like(
             self.mask,
@@ -126,10 +133,12 @@ class QEC:
 
     def show(
         self,
+        parity_info: tuple[jnp.ndarray],
         error: tuple[jnp.ndarray] = None,
         syndrome: jnp.ndarray = None,
     ):
-        m, n = self.hx.shape
+        hx, hz, lx, lz = parity_info
+        m, n = hx.shape
         if error is None:
             error = (
                 jnp.zeros(shape=n, dtype=jnp.bool),
@@ -137,12 +146,12 @@ class QEC:
             )
             logicals = None
         if syndrome is None:
-            syndrome, logicals = self.syndrome(error)
+            syndrome, logicals = self.syndrome(error, parity_info)
 
         plt.figure()
         # Plot the X-connections
         idx_syndrome, idx_data = jnp.where(
-            jnp.logical_and(self.hx == 0, self.hz == 1))
+            jnp.logical_and(hx == 0, hz == 1))
         xs, ys = jnp.ravel(jnp.column_stack((
             self.data_qubit_loc[idx_data],
             self.syndrome_qubit_loc[idx_syndrome],
@@ -152,7 +161,7 @@ class QEC:
         plt.plot(xs, ys, label='X', color='#FF0000')
         # Plot the Y-connections
         idx_syndrome, idx_data = jnp.where(
-            jnp.logical_and(self.hx == 1, self.hz == 1))
+            jnp.logical_and(hx == 1, hz == 1))
         xs, ys = jnp.ravel(jnp.column_stack((
             self.data_qubit_loc[idx_data],
             self.syndrome_qubit_loc[idx_syndrome],
@@ -162,7 +171,7 @@ class QEC:
         plt.plot(xs, ys, label='Y', color='#00FF00')
         # Plot the Z-connections
         idx_syndrome, idx_data = jnp.where(
-            jnp.logical_and(self.hx == 1, self.hz == 0))
+            jnp.logical_and(hx == 1, hz == 0))
         xs, ys = jnp.ravel(jnp.column_stack((
             self.data_qubit_loc[idx_data],
             self.syndrome_qubit_loc[idx_syndrome],
@@ -255,18 +264,72 @@ def surface_code(L: int) -> QEC:
     # Create mask to remove excess syndrome qubits
     mask = jnp.zeros(shape=(L+1, L+1), dtype=jnp.bool)
     # Mask for the x-stabilizers
-    mask_x = mask.at[1:-1:2, ::2].set(True).at[2:-1:2, 1::2].set(True)
+    mask = mask.at[1:-1:2, ::2].set(True).at[2:-1:2, 1::2].set(True)
     # Mask for the z-stabilizers
-    mask_z = mask.at[1::2, 1:-1:2].set(True).at[::2, 2:-1:2].set(True)
+    mask = mask.at[1::2, 1:-1:2].set(True).at[::2, 2:-1:2].set(True)
     # Remove excess syndrome qubits
-    syndrome_qubit_loc = syndrome_qubit_loc[jnp.ravel(mask_z | mask_x)]
-    hx = hx[jnp.ravel(mask_z | mask_x), :]
-    hz = hz[jnp.ravel(mask_z | mask_x), :]
+    syndrome_qubit_loc = syndrome_qubit_loc[jnp.ravel(mask)]
+    hx = hx[jnp.ravel(mask), :]
+    hz = hz[jnp.ravel(mask), :]
     return QEC(
         data_qubit_loc,
         syndrome_qubit_loc,
         parity_check_matrix=jnp.append(hx[None, :, :], hz[None, :, :], axis=0),
         logical_parity_matrix=jnp.append(
             logical_x[None, :, :], logical_z[None, :, :], axis=0),
-        mask=(mask_x, mask_z),
+        mask=mask,
     )
+
+
+def get_deformation_image(
+    code: QEC,
+    deformation: jnp.ndarray,
+    error_probs: jnp.ndarray,
+):
+    """
+    Only works for the surface code gotten by calling `surface_code(L)`
+
+    Returns a four channel image with information about the weight of the error that could trigger that stabilizer from each of the four directions (NV, NE, SV and SE)
+    """
+    def deform_stab_idx(
+        stab: jnp.ndarray,
+        deformation: jnp.ndarray,
+    ):
+        transformations_idx = jnp.array([
+            [0, 1, 2, 3],  # I
+            [0, 2, 1, 3],  # X-Y
+            [0, 1, 3, 2],  # Y-Z
+            [0, 3, 2, 1],  # X-Z
+            [0, 2, 3, 1],  # X-Y-Z
+            [0, 3, 1, 2],  # X-Z-Y
+        ])
+        transformation_table = transformations_idx[deformation]
+        return transformation_table[(
+            jnp.arange(stab.shape[0]),
+            stab
+        )]
+
+    n, m = jnp.array(code.mask.shape) - 1
+    graph_idx = jnp.arange(n*m) % 2
+    stab_a = deform_stab_idx(
+        jnp.where(graph_idx == 0, 3, 1), deformation).reshape(n, m)
+    stab_b = deform_stab_idx(
+        jnp.where(graph_idx == 0, 1, 3), deformation).reshape(n, m)
+
+    stab_dirs = jnp.stack((
+        jnp.pad(stab_a, pad_width=((0, 1), (1, 0))),  # NV
+        jnp.pad(stab_b, pad_width=((0, 1), (0, 1))),  # NE
+        jnp.pad(stab_b, pad_width=((1, 0), (1, 0))),  # SV
+        jnp.pad(stab_a, pad_width=((1, 0), (0, 1))),  # SE
+    )) * code.mask[None, :, :]
+
+    weights = jnp.log(error_probs) / jnp.log(error_probs.max())
+    stab_weights = jnp.array([
+        0,
+        weights[1] + weights[2],
+        weights[0] + weights[2],
+        weights[0] + weights[1],
+    ])
+    weight_dirs = stab_weights[stab_dirs]
+
+    return weight_dirs

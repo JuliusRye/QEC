@@ -49,7 +49,7 @@ class CNN:
         self,
         input_shape: tuple[int, int, int],
         conv_layers: list[tuple[int, int, int]],
-        fc_layers: list[int]
+        fc_layers: list[int],
     ):
         """
         input_shape: Tuple of ints (input_channels, input_height, input_width)
@@ -89,7 +89,7 @@ class CNN:
             conv_out_height = (conv_out_height - kernel_size) // stride + 1
             conv_out_width = (conv_out_width - kernel_size) // stride + 1
             print(
-                f"to mage of size {conv_out_height} by {conv_out_width} with {num_filters} channels")
+                f"to image of size {conv_out_height} by {conv_out_width} with {num_filters} channels")
 
         # Initialize fully connected layers
         fc_input_size = conv_out_height * conv_out_width * in_channels

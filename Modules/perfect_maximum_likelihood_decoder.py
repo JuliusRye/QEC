@@ -10,6 +10,7 @@ class PMLD:
         self,
         code: QEC,
         error_prob: jnp.ndarray,
+        parity_info: tuple[jnp.ndarray],
     ):
         """
         code: The quantum error correction code that should be decoded
@@ -17,7 +18,7 @@ class PMLD:
         error_prob: An [X, Y, Z] array describing the error rate for each Pauli-error
         """
         # Number of data qubits in the code
-        n = code.hx.shape[1]
+        n = code.hx_original.shape[1]
 
         # Generate a complete list of all possible error the code can have
         # NOTE: This gets exponentially hard for bigger codes
@@ -29,8 +30,10 @@ class PMLD:
 
         # Calculate the syndromes and logicals for each possible error
         all_syndromes, all_logicals = vmap(
-            code.syndrome
-        )(all_errors.reshape((-1, 2, n)))
+            code.syndrome,
+            in_axes=(0, None),
+            out_axes=0
+        )(all_errors.reshape((-1, 2, n)), parity_info)
         all_syndrome_idxs = jnp.dot(
             all_syndromes, 2**jnp.arange(all_syndromes.shape[1]))
         all_logical_idxs = jnp.dot(

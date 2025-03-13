@@ -163,3 +163,10 @@ cython_debug/
 
 # VS-code files
 .vscode
+
+testing/*
+packages/*
+trained_NN/*
+examples/*
+TOC.txt
+*test.ipynb

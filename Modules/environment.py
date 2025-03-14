@@ -26,11 +26,22 @@ class EnvironmentBase(ABC):
         Reset the system to the non-deformed quantum error correction code.
         """
         state = jnp.zeros(shape=(self.num_qubits), dtype=jnp.int32)
-        score, key = self._score_state(key, state)
+        score, key = self._state_score(key, state)
         return state, score, key
+    
+    def _state_score(
+        self,
+        key,
+        state: jnp.ndarray
+    ):
+        """
+        Gives the state a score based on it's logical error rate
+        """
+        error_rate, key = self._get_state_error_rate(key, state)
+        return -jnp.log(.99) / error_rate, key
 
     @abstractmethod
-    def _score_state(
+    def _get_state_error_rate(
         self,
         key,
         state: jnp.ndarray,
@@ -48,7 +59,8 @@ class EnvironmentBase(ABC):
         current_score: float,
         new_state: jnp.ndarray,
     ):
-        new_score, key = self._score_state(key, new_state)
+        new_score, key = self._state_score(key, new_state)
+        # Let the reward be the relative improvement in logical error rate
         reward = new_score - current_score
         return reward, new_score, key
 
@@ -85,7 +97,7 @@ class EnvironmentCNN(EnvironmentBase):
         self.shots = shots
 
     @partial(jit, static_argnames=("self"))
-    def _score_state(
+    def _get_state_error_rate(
         self,
         key,
         state: jnp.ndarray,
@@ -111,21 +123,21 @@ class EnvironmentCNN(EnvironmentBase):
         )(errors, parity_info)
         deformation_image = self.code.deformation_image(state)
 
+        # Predict the logical error
         predictions = self.decoder.apply_batch(
             self.params,
             syndrome_img[:, None, :, :],
             deformation_image,
         )
+        predicted_logicals = (predictions > 0)
 
+        # Compare prediction with the actual logical error
         error_rate = jnp.any(
-            logicals != (predictions > 0),
+            logicals != predicted_logicals,
             axis=1
         ).mean()
 
-        # Number of qec cycles that can be performed while maintaining above 99% logical fidelity
-        score = -jnp.log(.99) / error_rate
-
-        return score, keys[-1]
+        return error_rate, keys[-1]
 
 
 class EnvironmentPML(EnvironmentBase):
@@ -148,24 +160,15 @@ class EnvironmentPML(EnvironmentBase):
         super().__init__(noise_model, code)
 
     @partial(jit, static_argnames=("self"))
-    def _score_state(
+    def _get_state_error_rate(
         self,
         key,  # This argument is only for consistency between environments classes
         state: jnp.ndarray,
     ):
-        """
-        Calculates the score of the state corresponding to number of qec cycles that can be performed before going below 99% logical fidelity.
-
-        state: Current Clifford deformation
-        """
-
         error_rate = PMLD(
             self.code,
             self.noise_model,
             self.code.deformation_parity_info(state)
         ).exact_logical_error_rate()
 
-        # Number of qec cycles that can be performed while maintaining above 99% logical fidelity
-        score = -jnp.log(.99) / error_rate
-
-        return score, key
+        return error_rate, key

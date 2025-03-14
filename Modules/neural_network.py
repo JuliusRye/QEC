@@ -6,43 +6,54 @@ import json
 
 
 def save_params(
-    params: dict | list | jnp.ndarray,
+    params: dict | list | tuple | jnp.ndarray | int | float,
+    settings: dict,
     file_name: str,
 ):
     """
     Saves the neural network parameter object to a json file.
+
+    settings: Any aditional information that should be saved alongside the parameters
     """
-    def jsonify_params(params: dict | list | jnp.ndarray):
-        if isinstance(params, dict):
-            return {k: jsonify_params(v) for k, v in params.items()}
-        if isinstance(params, list):
-            return [jsonify_params(v) for v in params]
-        if isinstance(params, jnp.ndarray):
-            return params.tolist()
+    def jsonify(obj: dict | list | tuple | jnp.ndarray | int | float):
+        if isinstance(obj, dict):
+            return {k: jsonify(v) for k, v in obj.items()}
+        if isinstance(obj, list):
+            return [jsonify(v) for v in obj]
+        if isinstance(obj, tuple):
+            return tuple(jsonify(v) for v in obj)
+        if isinstance(obj, jnp.ndarray):
+            return obj.tolist()
+        if isinstance(obj, int) or isinstance(obj, float):
+            return obj
         raise NotImplementedError(
-            f"Handling of type {type(params)} has not been implemented")
+            f"Handling of type {type(obj)} has not been implemented")
     with open(file_name, 'w') as file:
-        json.dump(jsonify_params(params), file, indent=4)
+        json.dump(jsonify((settings, params)), file, indent=4)
 
 
 def load_params(
     file_name: str,
-) -> dict | list | jnp.ndarray:
+) -> dict | list | tuple | jnp.ndarray | int | float:
     """
     Loads the neural network parameter object from a JSON file.
+
+    Returns: Tuple of (settings, params)
     """
-    def dejsonify_params(params: dict | list | jnp.ndarray):
-        if isinstance(params, dict):
-            return {k: dejsonify_params(v) for k, v in params.items()}
-        if isinstance(params, list):
+    def de_jsonify(obj: dict | list | tuple | jnp.ndarray | int | float):
+        if isinstance(obj, dict):
+            return {k: de_jsonify(v) for k, v in obj.items()}
+        if isinstance(obj, list):
             try:
-                return jnp.array(params)
+                return jnp.array(obj)
             except TypeError:
-                return [dejsonify_params(v) for v in params]
+                return [de_jsonify(v) for v in obj]
+        if isinstance(obj, int) or isinstance(obj, float):
+            return obj
         raise NotImplementedError(
-            f"Handling of type {type(params)} has not been implemented")
+            f"Handling of type {type(obj)} has not been implemented")
     with open(file_name, 'r') as file:
-        return dejsonify_params(json.load(file))
+        return de_jsonify(json.load(file))
 
 
 class MLModel(ABC):

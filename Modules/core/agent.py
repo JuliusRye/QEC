@@ -1,4 +1,4 @@
-from neural_network import MLModel
+from Modules.core.neural_network import MLModel
 from jax import jit, random, lax, value_and_grad, vmap
 import jax.numpy as jnp
 import optax

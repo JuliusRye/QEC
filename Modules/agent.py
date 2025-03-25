@@ -61,7 +61,9 @@ class DQN():
 
         def _random_action(subkey):
             rv = random.uniform(
-                subkey, shape=disallowed_actions.shape) * (disallowed_actions == False)
+                subkey, 
+                shape=disallowed_actions.shape
+            ) * (disallowed_actions == False) - jnp.inf * (disallowed_actions == True)
             return rv.argmax(), jnp.all(disallowed_actions)
             # return random.choice(subkey, jnp.arange(self.n_actions)), False
 
@@ -71,7 +73,7 @@ class DQN():
                 -jnp.inf,
                 self.model.apply_batch(online_net_params, state).flatten()
             )
-            done = jnp.max(q_values) <= 0
+            done = jnp.max(q_values) == -jnp.inf
             return jnp.argmax(q_values), done
 
         explore = random.uniform(key) < epsilon

@@ -4,6 +4,19 @@ from jax import random, jit, vmap
 from functools import partial
 from matplotlib.colors import ListedColormap
 import stim
+from matplotlib.colors import ListedColormap
+
+
+deformation_cmap = ListedColormap([
+    "#FFFFFF",  # I
+    "#88C946",  # X <-> Y
+    "#C43119",  # Y <-> Z
+    "#00ADE7",  # X <-> Z
+    "#833794",  # X -> Z -> Y -> X
+    "#FFB94C",  # X -> Y -> Z -> X
+])
+deformation_cmap.set_under("k", alpha=0)
+deformation_cmap.set_over("k", alpha=0)
 
 
 class QEC:
@@ -69,7 +82,7 @@ class QEC:
     def deformation_parity_info(
         self,
         D: jnp.ndarray,
-    ) -> tuple[jnp.ndarray]:
+    ) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
 
         transformations = jnp.array([
             [[1, 0], [0, 1]],  # I
@@ -178,18 +191,13 @@ class QEC:
         self,
         parity_info: tuple[jnp.ndarray],
         error: tuple[jnp.ndarray] = None,
-        syndrome: jnp.ndarray = None,
     ):
         hx, hz, lx, lz = parity_info
         m, n = hx.shape
         if error is None:
-            error = (
-                jnp.zeros(shape=n, dtype=jnp.bool),
-                jnp.zeros(shape=n, dtype=jnp.bool)
-            )
+            error = jnp.zeros(shape=(2,n), dtype=jnp.bool)
             logicals = None
-        if syndrome is None:
-            syndrome, logicals = self.syndrome(error, parity_info)
+        syndrome, logicals = self.syndrome(error, parity_info)
 
         plt.figure()
         # Plot the X-connections
@@ -257,11 +265,24 @@ class QEC:
         self,
         parity_info,
         deformation,
+        error: jnp.ndarray = None,
     ):
         hx, hz, lx, lz = parity_info
+        m, n = hx.shape
+        if error is None:
+            error = jnp.zeros(shape=(2,n), dtype=jnp.bool)
+            logicals = None
+        syndrome, logicals = self.syndrome(error, parity_info)
+        xerr, zerr = error
 
         colors = ["White", "LimeGreen", "BrickRed",
                   "Cerulean", "Fuchsia", "Dandelion"]
+        err_color = [ # Order I, X, Z, Y
+            None,
+            "red!80",
+            "Cyan",
+            "green!80",
+        ]
 
         stab_x = jnp.where(jnp.logical_and(hx == 0, hz == 1))
         stab_y = jnp.where(jnp.logical_and(hx == 1, hz == 1))
@@ -272,21 +293,29 @@ class QEC:
         latex_code += f"\n% Draw the data qubits\n"
         for i, (x, y) in enumerate(self.data_qubit_loc):
             latex_code += f"\\node[draw, circle, fill={colors[deformation[i]]}, line width=.5mm, minimum size=5mm] (D{i}) at ({x*2},{y*2}) {{}};\n"
+            if xerr[i]+2*zerr[i] > 0:
+                latex_code += f"\\node[draw, star, fill={err_color[xerr[i]+2*zerr[i]]}, line width=.2mm, minimum size=1mm, inner sep=.6mm] () at ({x*2},{y*2}) {{}};\n"
 
         latex_code += f"\n% Draw the syndrome qubits\n"
         for i, (x, y) in enumerate(self.syndrome_qubit_loc):
-            latex_code += f"\\node[draw, circle, fill=black, line width=.5mm, minimum size=2mm] (S{i}) at ({x*2},{y*2}) {{}};\n"
+            latex_code += f"\\node[draw, circle, fill={'gray' if syndrome[i] else 'black'}, line width=.5mm, minimum size=2mm] (S{i}) at ({x*2},{y*2}) {{}};\n"
 
         latex_code += f"\n% Draw the x stabilizers\n"
         for i, j in zip(*stab_x):
+            if (error[:,j] == jnp.array([0,1])).all() or (error[:,j] == jnp.array([1,1])).all():
+                latex_code += f"\\draw[black, line width=1.3mm] (S{i}) -- (D{j});\n"
             latex_code += f"\\draw[red!80, line width=.3mm] (S{i}) -- (D{j});\n"
 
         latex_code += f"\n% Draw the y stabilizers\n"
         for i, j in zip(*stab_y):
+            if (error[:,j] == jnp.array([0,1])).all() or (error[:,j] == jnp.array([1,0])).all():
+                latex_code += f"\\draw[black, line width=1.3mm] (S{i}) -- (D{j});\n"
             latex_code += f"\\draw[green!80, line width=.3mm] (S{i}) -- (D{j});\n"
 
         latex_code += f"\n% Draw the z stabilizers\n"
         for i, j in zip(*stab_z):
+            if (error[:,j] == jnp.array([1,0])).all() or (error[:,j] == jnp.array([1,1])).all():
+                latex_code += f"\\draw[black, line width=1.3mm] (S{i}) -- (D{j});\n"
             latex_code += f"\\draw[Cyan, line width=.3mm] (S{i}) -- (D{j});\n"
 
         return latex_code
@@ -611,8 +640,32 @@ class SurfaceCode(QEC):
         img_deformation = jnp.eye(6, dtype=jnp.float32)[
             deformation.reshape((self.L, self.L))
         ].transpose(2, 0, 1)
-        return img_deformation[None,:,:,:]
+        return img_deformation[None, :, :, :]
         img_deformation_roll = jnp.roll(img_deformation, shift=3, axis=0)
         mask = (jnp.arange(self.L)[:, None] +
                 jnp.arange(self.L)[None, :]) % 2 == 1
         return jnp.where(mask[None, :, :], img_deformation, img_deformation_roll)[None, :, :, :]
+    
+    def show_latex_code(
+        self, 
+        parity_info: jnp.ndarray, 
+        deformation: jnp.ndarray,
+        error: jnp.ndarray = None,
+    ):
+        
+        latex_code = "% Draw the plaquettes\n"
+
+        # Background plaquets
+        for i in range(self.L-1):
+            for j in range(self.L-1):
+                x1, x2 = 2*i, 2*(i+1)
+                y1, y2 = 2*j, 2*(j+1)
+                latex_code += f"\\filldraw[fill=black!{5 if (i+j)%2 else 10}, draw=none] ({x1},{y1}) -- ({x2},{y1}) -- ({x2},{y2}) -- ({x1},{y2}) -- cycle;\n"
+        for i in range((self.L-1)//2):
+            dim = 2*(self.L-1)
+            latex_code += f"\\filldraw[fill=black!5, draw=none] ({0},{4*i}) -- ({0},{4*i+2}) -- ({-1},{4*i+1}) -- cycle;\n"
+            latex_code += f"\\filldraw[fill=black!5, draw=none] ({dim},{4*i+2}) -- ({dim},{4*i+4}) -- ({dim+1},{4*i+3}) -- cycle;\n"
+            latex_code += f"\\filldraw[fill=black!10, draw=none] ({4*i+2},{0}) -- ({4*i+4},{0}) -- ({4*i+3},{-1}) -- cycle;\n"
+            latex_code += f"\\filldraw[fill=black!10, draw=none] ({4*i},{dim}) -- ({4*i+2},{dim}) -- ({4*i+1},{dim+1}) -- cycle;\n"
+
+        return latex_code + super().show_latex_code(parity_info, deformation, error)

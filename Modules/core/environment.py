@@ -121,7 +121,7 @@ class EnvironmentCNN(EnvironmentBase):
             in_axes=(0, None),
             out_axes=0
         )(errors, parity_info)
-        deformation_image = self.code.deformation_image(state)
+        deformation_image = self.code.deformation_image(state)[None,:,:,:]
 
         # Predict the logical error
         predictions = self.decoder.apply_batch(
@@ -239,7 +239,7 @@ class EnvironmentNoiselessCNN(EnvironmentBase):
             in_axes=(0, None),
             out_axes=0
         )(self.all_errors.reshape(-1, 2, self.code.num_data_qubits), parity_info)
-        deformation_image = self.code.deformation_image(state)
+        deformation_image = self.code.deformation_image(state)[None,:,:,:]
 
         # Predict the logical error
         predictions = self.decoder.apply_batch(

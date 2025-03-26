@@ -640,11 +640,7 @@ class SurfaceCode(QEC):
         img_deformation = jnp.eye(6, dtype=jnp.float32)[
             deformation.reshape((self.L, self.L))
         ].transpose(2, 0, 1)
-        return img_deformation[None, :, :, :]
-        img_deformation_roll = jnp.roll(img_deformation, shift=3, axis=0)
-        mask = (jnp.arange(self.L)[:, None] +
-                jnp.arange(self.L)[None, :]) % 2 == 1
-        return jnp.where(mask[None, :, :], img_deformation, img_deformation_roll)[None, :, :, :]
+        return img_deformation
     
     def show_latex_code(
         self, 

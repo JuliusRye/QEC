@@ -18,6 +18,37 @@ deformation_cmap = ListedColormap([
 deformation_cmap.set_under("k", alpha=0)
 deformation_cmap.set_over("k", alpha=0)
 
+relevancy_tensor = jnp.array([
+    # No error
+    [[1, 1, 1, 1, 1, 1],
+     [1, 1, 1, 1, 1, 1],
+     [1, 1, 1, 1, 1, 1],
+     [1, 1, 1, 1, 1, 1],
+     [1, 1, 1, 1, 1, 1],
+     [1, 1, 1, 1, 1, 1]],
+    # Pauli X error
+    [[1, 0, 1, 0, 0, 0],
+     [0, 1, 0, 0, 1, 0],
+     [1, 0, 1, 0, 0, 0],
+     [0, 0, 0, 1, 0, 1],
+     [0, 1, 0, 0, 1, 0],
+     [0, 0, 0, 1, 0, 1]],
+    # Pauli Z error
+    [[1, 1, 0, 0, 0, 0],
+     [1, 1, 0, 0, 0, 0],
+     [0, 0, 1, 0, 0, 1],
+     [0, 0, 0, 1, 1, 0],
+     [0, 0, 0, 1, 1, 0],
+     [0, 0, 1, 0, 0, 1]],
+    # Pauli Y error
+    [[1, 0, 0, 1, 0, 0],
+     [0, 1, 0, 0, 0, 1],
+     [0, 0, 1, 0, 1, 0],
+     [1, 0, 0, 1, 0, 0],
+     [0, 0, 1, 0, 1, 0],
+     [0, 1, 0, 0, 0, 1]],
+])
+
 
 class QEC:
 
@@ -48,7 +79,7 @@ class QEC:
         self.lx_original, self.lz_original = logical_parity_matrix[0], logical_parity_matrix[1]
 
         self.deformation = jnp.zeros(
-            shape=self.num_data_qubits, dtype=jnp.int32)
+            shape=self.num_data_qubits, dtype=jnp.uint8)
 
     def random_deformation(
         self,
@@ -513,11 +544,11 @@ class SurfaceCode(QEC):
         # Create the logical x and z operators
         logical_x = jnp.zeros(
             shape=(2, L**2),
-            dtype=jnp.int32,
+            dtype=jnp.uint8,
         ).at[0, :].set(1)
         logical_z = jnp.zeros(
             shape=(2, L**2),
-            dtype=jnp.int32,
+            dtype=jnp.uint8,
         ).at[1, :].set(1)
         # Create the parity check matricies
         """
@@ -528,7 +559,7 @@ class SurfaceCode(QEC):
         """
         hx = jnp.zeros(
             shape=(syndrome_qubit_loc.shape[0], data_qubit_loc.shape[0]),
-            dtype=jnp.int32
+            dtype=jnp.uint8
         ).at[(
             jnp.arange(2*L**2)//2 + jnp.arange(2*L**2)//2//L +
             jnp.array([1, L+1, L+2, 0])[jnp.arange(2*L**2) % 4],
@@ -536,7 +567,7 @@ class SurfaceCode(QEC):
         )].set(1)
         hz = jnp.zeros(
             shape=(syndrome_qubit_loc.shape[0], data_qubit_loc.shape[0]),
-            dtype=jnp.int32
+            dtype=jnp.uint8
         ).at[(
             jnp.arange(2*L**2)//2 + jnp.arange(2*L**2)//2//L +
             jnp.array([0, L+2, L+1, 1])[jnp.arange(2*L**2) % 4],

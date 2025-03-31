@@ -1,0 +1,4 @@
+The logical error rate without the NN correction:     46.85%
+The logical error rate with the NN correction:         4.18%
+The logical error with MWPM decoding:                  4.26%
+# 12 min training

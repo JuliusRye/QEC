@@ -1,0 +1,4 @@
+The logical error rate without the NN correction:     46.86%
+The logical error rate with the NN correction:         3.07%
+The logical error with MWPM decoding:                  4.27%
+# 14 trianing

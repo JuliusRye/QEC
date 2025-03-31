@@ -182,6 +182,80 @@ class QEC:
             error_x,
             error_z
         )).T
+    
+    def up_to_n_error(
+        self,
+        key,
+        n: int,
+    ) -> tuple[jnp.ndarray]:
+        """
+        #### Jit optimized function!
+
+        Generate data qubit errors.
+
+        key: jax random key for generating random numbers
+
+        n: number of errors to generate
+
+        returns: An array of X and Z error locations of shape (2, num_data_qubits)
+        """
+        return self._up_to_n_error(key, n)
+
+    @partial(jit, static_argnames=("self", "n"))
+    def _up_to_n_error(
+        self,
+        key,
+        n: int,
+    ):
+        targets = random.choice(
+            key,
+            a=self.num_data_qubits,
+            shape=(n,),
+            replace=False
+        )
+        errors = jnp.zeros((2, self.num_data_qubits), dtype=jnp.int32)
+        errors = errors.at[:, targets].set(
+            random.randint(
+            key,
+            shape=(2, n),
+            minval=0,
+            maxval=2,
+            )
+        )
+        return errors
+    
+    def error_likelihood(
+        self,
+        error: jnp.ndarray,
+        probabilities: jnp.ndarray,
+    ) -> jnp.ndarray:
+        """
+        #### Jit optimized function!
+
+        Calculate the likelihood of a given error.
+
+        error: An array of X and Z error locations of shape (2, num_data_qubits)
+
+        probabilities: Pauli errors probabilities for [X, Y, Z] errors respectively
+
+        returns: The likelihood of the given error
+        """
+        return self._error_likelihood(error, probabilities)
+    
+    @partial(jit, static_argnames=("self"))
+    def _error_likelihood(
+        self,
+        error: jnp.ndarray,
+        probabilities: jnp.ndarray,
+    ) -> jnp.ndarray:
+        probs = jnp.array([
+            1 - probabilities.sum(),
+            probabilities[0],
+            probabilities[2],
+            probabilities[1],
+        ])
+        error_idx = error[0] + 2*error[1]
+        return jnp.prod(probs[error_idx], axis=-1)
 
     def syndrome(
         self,

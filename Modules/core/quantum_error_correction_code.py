@@ -213,7 +213,7 @@ class QEC:
             shape=(n,),
             replace=False
         )
-        errors = jnp.zeros((2, self.num_data_qubits), dtype=jnp.int32)
+        errors = jnp.zeros((2, self.num_data_qubits), dtype=jnp.bool)
         errors = errors.at[:, targets].set(
             random.randint(
             key,

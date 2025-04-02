@@ -275,6 +275,103 @@ class CNN(MLModel):
         return self._apply_batch(params, x)
 
 
+class CNNDecoder(MLModel):
+
+    def __init__(
+        self,
+        input_shape: tuple[int, int, int],
+        conv_layers: list[tuple[int, int, int, int]],
+        fc_layers: list[int],
+    ):
+        """
+        input_shape: Tuple of ints (input_channels, input_height, input_width)
+
+        conv_layers: List of tuples (num_filters, kernel_size, stride, pad)
+
+        activation_on_last_layer: Bool for whether or not to use the activation function on all layers or to exclude the last layer
+        """
+        self.sub_models: dict[str, MLModel] = {}
+        # CNN part
+        self.sub_models['CNN'] = CNN(
+            input_shape,
+            conv_layers,
+            activation_on_last_layer=True
+        )
+        # MLP part
+        cnn_output_neurons = int(jnp.prod(jnp.array(
+            self.sub_models['CNN'].layer_sizes[-1]
+        )))
+        self.sub_models['MLP'] = MLP(
+            [cnn_output_neurons, *fc_layers],
+            activation_on_last_layer=False
+        )
+
+        self.layer_sizes = {
+            'CNN': self.sub_models['CNN'].layer_sizes,
+            'MLP': self.sub_models['MLP'].layer_sizes,
+        }
+    
+    def init(
+        self,
+        key,
+    ) -> dict[str, list[dict[str, jnp.ndarray]]]:
+        """Initializes the MLP parameters with random weights and biases."""
+        keys = random.split(key, num=2)
+        params = {}
+        params['CNN'] = self.sub_models['CNN'].init(keys[0])
+        params['MLP'] = self.sub_models['MLP'].init(keys[1])
+        return params
+    
+    @partial(jit, static_argnames=("self"))
+    def _apply_batch(
+        self,
+        params: dict[str, list[dict[str, jnp.ndarray]]],
+        x: jnp.ndarray,
+    ) -> jnp.ndarray:
+        # CNN part
+        x = self.sub_models['CNN'].apply_batch(
+            params['CNN'], x
+        )
+        # Flatten the image (but not over different batches)
+        x = x.reshape(x.shape[0], -1)
+        # MLP part
+        x = self.sub_models['MLP'].apply_batch(
+            params['MLP'], x
+        )
+        return x
+    
+    def apply_single(
+        self,
+        params: dict[str, list[dict[str, jnp.ndarray]]],
+        x: jnp.ndarray,
+    ) -> jnp.ndarray:
+        """
+        #### Jit optimized function!
+
+        Applies the CNN Decoder to a single input x.
+
+        x: array of shape (input_channels, input_width, input_height)
+
+        returns: array of shape (output_size)
+        """
+        return self._apply_batch(params, x[None, :])[0]
+    
+    def apply_batch(
+        self,
+        params: dict[str, list[dict[str, jnp.ndarray]]],
+        x: jnp.ndarray,
+    ) -> jnp.ndarray:
+        """
+        #### Jit optimized function!
+
+        Applies the CNN Decoder to a batch of inputs x.
+
+        x: array of shape (batch_size, input_channels, input_width, input_height)
+
+        returns: array of shape (batch_size, output_size)
+        """
+        return self._apply_batch(params, x)
+
 class CNNDual(MLModel):
     def __init__(
         self,
@@ -356,7 +453,7 @@ class CNNDual(MLModel):
         params['MLP_stage_3'] = self.sub_models['MLP_stage_3'].init(keys[3])
         return params
 
-    # @partial(jit, static_argnames=("self"))
+    @partial(jit, static_argnames=("self"))
     def _apply_batch(
         self,
         params: dict[str, list[dict[str, jnp.ndarray]]],

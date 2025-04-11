@@ -56,12 +56,10 @@ class EnvironmentBase(ABC):
     def reward(
         self,
         key,
-        current_score: float,
         new_state: jnp.ndarray,
     ):
         new_score, key = self._state_score(key, new_state)
-        # Let the reward be the relative improvement in logical error rate
-        reward = new_score - current_score
+        reward = jnp.log10(new_score)
         return reward, new_score, key
 
 

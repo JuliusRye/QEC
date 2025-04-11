@@ -1,4 +1,4 @@
-from Modules.core.neural_network import MLModel
+from core.neural_network import MLModel
 from jax import jit, random, lax, value_and_grad, vmap
 import jax.numpy as jnp
 import optax
@@ -71,7 +71,7 @@ class DQN():
             q_values = jnp.where(
                 disallowed_actions,
                 -jnp.inf,
-                self.model.apply_batch(online_net_params, state).flatten()
+                self.model.apply_single(online_net_params, state).flatten()
             )
             done = jnp.max(q_values) == -jnp.inf
             return jnp.argmax(q_values), done
@@ -146,9 +146,9 @@ class DQN():
                 done,
             ):
                 target = reward + (1 - done) * self.discount * jnp.max(
-                    self.model.apply_batch(target_net_params, next_state),
+                    self.model.apply_single(target_net_params, next_state),
                 )
-                prediction = self.model.apply_batch(
+                prediction = self.model.apply_single(
                     online_net_params, state).flatten()[action]
                 return jnp.square(target - prediction)
 

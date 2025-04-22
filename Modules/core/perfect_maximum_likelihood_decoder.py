@@ -57,6 +57,12 @@ class PMLD:
             2**all_logicals.shape[1],
         )).at[(all_syndrome_idxs, all_logical_idxs)].add(likelihood)
 
+        # 2D histogram comparing predicted logicals to actual logicals
+        all_preds = self.decode_batch(all_syndromes)
+        i = 2 * all_logicals[:, 0] + all_logicals[:, 1]
+        j = 2 * all_preds[:, 0] + all_preds[:, 1]
+        self.hist2d = jnp.zeros((4, 4), dtype=jnp.float32).at[j, i].add(likelihood)
+
     def decode(
         self,
         syndrome: jnp.ndarray,

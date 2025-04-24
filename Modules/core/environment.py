@@ -71,13 +71,16 @@ class EnvironmentCNN(EnvironmentBase):
         model_params,
         noise_model: jnp.ndarray,
         code: SurfaceCode,
-        shots: int
+        num_samples: int,
+        sample_size: int,
     ):
         """
         The environment the RL-agent will interact with. 
         This environment uses a CNN to estimate the logical error rate of a given deformation. 
         This logical error rate is in turn used to score the state 
         and calculate the reward the RL-agent will recieve.
+
+        NOTE: shots = samples times sample_size is the number of samples that will be used to estimate the logical error rate
 
         model: The CNN that will be used to decode errors on a given deformation
 
@@ -87,12 +90,16 @@ class EnvironmentCNN(EnvironmentBase):
 
         code: The quantum error correction code that is being deformed
 
-        shots: The number of samples given to the CNN for the estimation of the logical error rate
+        num_samples: The number of samples that will be used to estimate the logical error rate
+
+        sample_size: The number of error samples that will be used to estimate the logical error rate per sample
         """
         super().__init__(noise_model, code)
         self.decoder = model
         self.params = model_params
-        self.shots = shots
+        self.num_samples = num_samples
+        self.sample_size = sample_size
+        self.shots = num_samples * sample_size
 
     @partial(jit, static_argnames=("self"))
     def _get_state_error_rate(
@@ -105,37 +112,43 @@ class EnvironmentCNN(EnvironmentBase):
 
         state: Current Clifford deformation
         """
-        keys = random.split(key, num=self.shots+1)
+        major_keys = random.split(key, num=self.num_samples+1)
 
-        # Generate syndrome data for the deformation
         parity_info = self.code.deformation_parity_info(state)
-        errors = vmap(
-            self.code.error,
-            in_axes=(0, None),
-            out_axes=0
-        )(keys[:-1], self.noise_model)
-        syndrome_img, logicals = vmap(
-            self.code.syndrome_img,
-            in_axes=(0, None),
-            out_axes=0
-        )(errors, parity_info)
-        deformation_image = self.code.deformation_image(state)[None,:,:,:]
+        sampled_error_rates = jnp.empty(self.num_samples, dtype=jnp.float32)
+        for i in range(self.num_samples):
+            # Generate syndrome data for the deformation
+            sample_keys = random.split(major_keys[i], num=self.sample_size)
+            errors = vmap(
+                self.code.error,
+                in_axes=(0, None),
+                out_axes=0
+            )(sample_keys, self.noise_model)
+            syndrome_img, logicals = vmap(
+                self.code.syndrome_img,
+                in_axes=(0, None),
+                out_axes=0
+            )(errors, parity_info)
+            deformation_image = self.code.deformation_image(state)[None,:,:,:]
 
-        # Predict the logical error
-        predictions = self.decoder.apply_batch(
-            self.params,
-            syndrome_img[:, None, :, :],
-            deformation_image,
-        )
-        predicted_logicals = (predictions > 0)
+            # Predict the logical error
+            predictions = self.decoder.apply_batch(
+                self.params,
+                syndrome_img[:, None, :, :],
+                deformation_image,
+            )
+            predicted_logicals = (predictions > 0)
 
-        # Compare prediction with the actual logical error
-        error_rate = jnp.any(
-            logicals != predicted_logicals,
-            axis=1
-        ).mean()
+            # Compare prediction with the actual logical error
+            error_rate_of_sample = jnp.any(
+                logicals != predicted_logicals,
+                axis=1
+            ).mean()
+            sampled_error_rates = sampled_error_rates.at[i].set(error_rate_of_sample)
+        # Calculate the average error rate
+        error_rate = sampled_error_rates.mean()
 
-        return error_rate, keys[-1]
+        return error_rate, major_keys[-1]
 
 
 class EnvironmentPML(EnvironmentBase):

@@ -46,7 +46,7 @@ def load_params(
         if isinstance(obj, list):
             try:
                 return jnp.array(obj)
-            except TypeError:
+            except (TypeError, ValueError):
                 return [de_jsonify(v) for v in obj]
         if isinstance(obj, int) or isinstance(obj, float):
             return obj

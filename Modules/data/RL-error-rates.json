@@ -1,0 +1,14 @@
+{
+    "3-PML-exploration": 2.5033950805664062e-05,
+    "3-PML-decay": 2.491474151611328e-05,
+    "3-PML-exploitation": 2.491474151611328e-05,
+    "3-CNN-G-exploration": 0.00011359999189153314,
+    "3-CNN-G-decay": 0.00012680000509135425,
+    "3-CNN-G-exploitation": 0.0001314999972237274,
+    "5-CNN-G-exploration": 4.629999602911994e-05,
+    "5-CNN-G-decay": 6.130000110715628e-05,
+    "5-CNN-G-exploitation": 6.089999442338012e-05,
+    "7-CNN-G-exploration": 6.289999146247283e-05,
+    "7-CNN-G-decay": 6.969999958528206e-05,
+    "7-CNN-G-exploitation": 7.579999510198832e-05
+}

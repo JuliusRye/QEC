@@ -21,11 +21,18 @@ class EnvironmentBase(ABC):
     def reset(
         self,
         key,
+        to_random_state: bool = False,
     ):
         """
-        Reset the system to the non-deformed quantum error correction code.
+        Resets the environment.
+
+        to_random_state: If True, the environment will be reset to a random state.
+        If False, the environment will be reset to the non deformed state.
         """
-        state = jnp.zeros(shape=(self.num_qubits), dtype=jnp.int32)
+        if to_random_state:
+            state, key = self.code.random_deformation(key, jnp.arange(6))
+        else:
+            state = jnp.zeros(shape=(self.num_qubits), dtype=jnp.int32)
         score, key = self._state_score(key, state)
         return state, score, key
 

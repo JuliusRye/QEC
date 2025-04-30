@@ -31,7 +31,6 @@ class DQN():
         key: random.PRNGKey,
         online_net_params: dict,
         state: jnp.ndarray,
-        disallowed_actions: jnp.ndarray,
         epsilon: float,
     ):
         """
@@ -47,7 +46,7 @@ class DQN():
 
         returns: Tuple of (actions, done, key)
         """
-        return self._act(key, online_net_params, state, disallowed_actions, epsilon)
+        return self._act(key, online_net_params, state, epsilon)
 
     @partial(jit, static_argnames=("self"))
     def _act(
@@ -55,26 +54,29 @@ class DQN():
         key: random.PRNGKey,
         online_net_params: dict,
         state: jnp.ndarray,
-        disallowed_actions: jnp.ndarray,
         epsilon: float,
     ):
+        # The actions that leave the deformation the same
+        invariant_actions = jnp.zeros(
+            self.num_data_qubits*self.num_deformations, 
+            dtype=jnp.bool
+        ).at[
+            self.merge_action(state, jnp.arange(self.num_data_qubits))
+        ].set(True)
 
         def _random_action(subkey):
             rv = random.uniform(
                 subkey, 
-                shape=disallowed_actions.shape
-            ) * (disallowed_actions == False) - jnp.inf * (disallowed_actions == True)
-            return rv.argmax(), jnp.all(disallowed_actions)
-            # return random.choice(subkey, jnp.arange(self.n_actions)), False
+                shape=invariant_actions.shape
+            ) - (invariant_actions == True)
+            return rv.argmax(), False
 
         def _policy_action(_):
-            q_values = jnp.where(
-                disallowed_actions,
-                -jnp.inf,
-                self.model.apply_single(online_net_params, state).flatten()
-            )
-            done = jnp.max(q_values) == -jnp.inf
-            return jnp.argmax(q_values), done
+            q_values = self.model.apply_single(online_net_params, state).flatten()
+            q_values = jnp.where(invariant_actions, -jnp.inf, q_values)
+            desired_action = jnp.argmax(q_values)
+            done = invariant_actions[desired_action]
+            return desired_action, done
 
         explore = random.uniform(key) < epsilon
         key, subkey = random.split(key)

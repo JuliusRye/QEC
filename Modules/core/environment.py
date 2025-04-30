@@ -2,7 +2,7 @@ from quantum_error_correction_code import SurfaceCode
 from neural_network import CNNDual
 from perfect_maximum_likelihood_decoder import PMLD
 from functools import partial
-from jax import random, jit, vmap
+from jax import random, jit, vmap, nn
 import jax.numpy as jnp
 from abc import ABC, abstractmethod
 
@@ -33,8 +33,8 @@ class EnvironmentBase(ABC):
             state, key = self.code.random_deformation(key, jnp.arange(6))
         else:
             state = jnp.zeros(shape=(self.num_qubits), dtype=jnp.int32)
-        score, key = self._state_score(key, state)
-        return state, score, key
+        score, error_rate, key = self._state_score(key, state)
+        return state, score, error_rate, key
 
     def _state_score(
         self,
@@ -45,7 +45,8 @@ class EnvironmentBase(ABC):
         Gives the state a score based on it's logical error rate
         """
         error_rate, key = self._get_state_error_rate(key, state)
-        return -jnp.log(.99) / error_rate, key
+        score = -jnp.log10(error_rate) / error_rate
+        return score, error_rate, key
 
     @abstractmethod
     def _get_state_error_rate(
@@ -63,11 +64,15 @@ class EnvironmentBase(ABC):
     def reward(
         self,
         key,
+        old_score: float,
         new_state: jnp.ndarray,
     ):
-        new_score, key = self._state_score(key, new_state)
+        new_score, error_rate, key = self._state_score(key, new_state)
+        # procentage_change = (old_score - new_score) / old_score
+        # reward = nn.sigmoid(procentage_change)
         reward = jnp.log10(new_score)
-        return reward, new_score, key
+        # reward = new_score / 400
+        return reward, new_score, error_rate, key
 
 
 class EnvironmentCNN(EnvironmentBase):

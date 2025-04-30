@@ -75,7 +75,7 @@ class DQN():
             q_values = self.model.apply_single(online_net_params, state).flatten()
             q_values = jnp.where(invariant_actions, -jnp.inf, q_values)
             desired_action = jnp.argmax(q_values)
-            done = invariant_actions[desired_action]
+            done = q_values.max() < 0
             return desired_action, done
 
         explore = random.uniform(key) < epsilon

@@ -72,13 +72,19 @@ def evaluate_cnn_decoder(
             raise ValueError(f"Unknown decoder model type. Expected CNNDual or CNNDecoder, got {type(decoder_model)}.")
         predictions = result > 0.0
         logical_error_rate = (predictions != logicals).any(axis=1).mean()
-        return logical_error_rate
+        i = 2 * logicals[:, 0] + logicals[:, 1]
+        j = 2 * predictions[:, 0] + predictions[:, 1]
+        return logical_error_rate, i, j
     
     parity_info = code.deformation_parity_info(deformation)
     keys = random.split(key, num=batch_count)
-    return jnp.mean(jnp.array([
-        evaluate_batch(subkey, parity_info) for subkey in keys
-    ]))
+    logical_error_rate = jnp.empty((batch_count,), dtype=jnp.float32)
+    correlation_hist2d = jnp.zeros((4, 4), dtype=jnp.int32)
+    for r, subkey in enumerate(keys):
+        ler, i, j = evaluate_batch(subkey, parity_info)
+        logical_error_rate = logical_error_rate.at[r].set(ler)
+        correlation_hist2d = correlation_hist2d.at[j, i].add(1)
+    return logical_error_rate.mean(), correlation_hist2d
 
 def evaluate_pml_decoder(
     key,
@@ -106,14 +112,20 @@ def evaluate_pml_decoder(
         )
         predictions = decoder.decode_batch(syndromes)
         logical_error_rate = (predictions != logicals).any(axis=1).mean()
-        return logical_error_rate
+        i = 2 * logicals[:, 0] + logicals[:, 1]
+        j = 2 * predictions[:, 0] + predictions[:, 1]
+        return logical_error_rate, i, j
     
     parity_info = code.deformation_parity_info(deformation)
     decoder = PMLD(code, error_probs, parity_info)
     keys = random.split(key, num=batch_count)
-    return jnp.mean(jnp.array([
-        evaluate_batch(subkey, decoder, parity_info) for subkey in keys
-    ]))
+    logical_error_rate = jnp.empty((batch_count,), dtype=jnp.float32)
+    correlation_hist2d = jnp.zeros((4, 4), dtype=jnp.int32)
+    for r, subkey in enumerate(keys):
+        ler, i, j = evaluate_batch(subkey, decoder, parity_info)
+        logical_error_rate = logical_error_rate.at[r].set(ler)
+        correlation_hist2d = correlation_hist2d.at[j, i].add(1)
+    return logical_error_rate.mean(), correlation_hist2d
 
 def logicals_of_recovery(
     code: SurfaceCode,
@@ -162,7 +174,9 @@ def evaluate_mwpm_decoder(
             out_axes=0
         )(recovery, parity_info_CSS)
         logical_error_rate = (predictions != logicals).any(axis=1).mean()
-        return logical_error_rate
+        i = 2 * logicals[:, 0] + logicals[:, 1]
+        j = 2 * predictions[:, 0] + predictions[:, 1]
+        return logical_error_rate, i, j
     
     parity_info = code.deformation_parity_info(deformation)
     parity_info_CSS = code.deformation_parity_info(jnp.zeros(code.num_data_qubits, dtype=jnp.int32))
@@ -170,6 +184,10 @@ def evaluate_mwpm_decoder(
         jnp.append(parity_info_CSS[0], parity_info_CSS[1], axis=1)
     )
     keys = random.split(key, num=batch_count)
-    return jnp.mean(jnp.array([
-        evaluate_batch(subkey, decoder, parity_info, parity_info_CSS) for subkey in keys
-    ]))
+    logical_error_rate = jnp.empty((batch_count,), dtype=jnp.float32)
+    correlation_hist2d = jnp.zeros((4, 4), dtype=jnp.int32)
+    for r, subkey in enumerate(keys):
+        ler, i, j = evaluate_batch(subkey, decoder, parity_info, parity_info_CSS)
+        logical_error_rate = logical_error_rate.at[r].set(ler)
+        correlation_hist2d = correlation_hist2d.at[j, i].add(1)
+    return logical_error_rate.mean(), correlation_hist2d

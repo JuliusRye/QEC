@@ -44,14 +44,13 @@ def evaluate_cnn_decoder(
     batch_count: int,
     batch_size: int,
     error_probs: jnp.ndarray,
-    deformation_image: jnp.ndarray = None,
 ):
     """
     Evaluate the CNN decoder on batch_count * batch_size samples.
 
     NOTE: deformation image is only needed for the `decoder_model` of type `CNNDual`
     """
-    # @jit
+    @jit
     def evaluate_batch(
         key,
         parity_info: tuple[jnp.ndarray]
@@ -64,12 +63,7 @@ def evaluate_cnn_decoder(
             error_probs,
             as_images=True
         )
-        if isinstance(decoder_model, CNNDual):
-            result = decoder_model.apply_batch(model_params, syndromes[:,None,:,:], deformation_image[None,:,:,:])
-        elif isinstance(decoder_model, CNNDecoder):
-            result = decoder_model.apply_batch(model_params, syndromes[:,None,:,:])
-        else:
-            raise ValueError(f"Unknown decoder model type. Expected CNNDual or CNNDecoder, got {type(decoder_model)}.")
+        result = decoder_model.apply_batch(model_params, syndromes[:,None,:,:])
         predictions = result > 0.0
         logical_error_rate = (predictions != logicals).any(axis=1).mean()
         i = 2 * logicals[:, 0] + logicals[:, 1]
@@ -86,8 +80,10 @@ def evaluate_cnn_decoder(
         correlation_hist2d = correlation_hist2d.at[j, i].add(1)
     return logical_error_rate.mean(), correlation_hist2d
 
-def evaluate_pml_decoder(
+def evaluate_mcnn_decoder(
     key,
+    decoder_model: CNNDual | CNNDecoder,
+    model_params: dict,
     code: SurfaceCode,
     deformation: jnp.ndarray,
     batch_count: int,
@@ -95,7 +91,55 @@ def evaluate_pml_decoder(
     error_probs: jnp.ndarray,
 ):
     """
+    Evaluate the CNN decoder on batch_count * batch_size samples.
+
+    NOTE: deformation image is only needed for the `decoder_model` of type `CNNDual`
+    """
+    @jit
+    def evaluate_batch(
+        key,
+        parity_info: tuple[jnp.ndarray],
+        deformation_image: jnp.ndarray,
+    ):
+        syndromes, logicals = data_batch(
+            key,
+            code,
+            batch_size,
+            parity_info,
+            error_probs,
+            as_images=True
+        )
+        result = decoder_model.apply_batch(model_params, syndromes[:,None,:,:], deformation_image[None,:,:,:])
+        predictions = result > 0.0
+        logical_error_rate = (predictions != logicals).any(axis=1).mean()
+        i = 2 * logicals[:, 0] + logicals[:, 1]
+        j = 2 * predictions[:, 0] + predictions[:, 1]
+        return logical_error_rate, i, j
+    
+    parity_info = code.deformation_parity_info(deformation)
+    deformation_image = code.deformation_image(deformation)
+    keys = random.split(key, num=batch_count)
+    logical_error_rate = jnp.empty((batch_count,), dtype=jnp.float32)
+    correlation_hist2d = jnp.zeros((4, 4), dtype=jnp.int32)
+    for r, subkey in enumerate(keys):
+        ler, i, j = evaluate_batch(subkey, parity_info, deformation_image)
+        logical_error_rate = logical_error_rate.at[r].set(ler)
+        correlation_hist2d = correlation_hist2d.at[j, i].add(1)
+    return logical_error_rate.mean(), correlation_hist2d
+
+def evaluate_pml_decoder(
+    key,
+    code: SurfaceCode,
+    deformation: jnp.ndarray,
+    batch_count: int,
+    batch_size: int,
+    error_probs: jnp.ndarray,
+    exact: bool = False,
+):
+    """
     Evaluate the PML decoder on batch_count * batch_size samples.
+
+    If exact is True, the exact numbers are returned and batch_count and batch_size are ignored.    
     """
     def evaluate_batch(
         key,
@@ -118,6 +162,10 @@ def evaluate_pml_decoder(
     
     parity_info = code.deformation_parity_info(deformation)
     decoder = PMLD(code, error_probs, parity_info)
+
+    if exact:
+        return decoder.exact_logical_error_rate(), decoder.hist2d
+
     keys = random.split(key, num=batch_count)
     logical_error_rate = jnp.empty((batch_count,), dtype=jnp.float32)
     correlation_hist2d = jnp.zeros((4, 4), dtype=jnp.int32)
@@ -150,7 +198,6 @@ def evaluate_mwpm_decoder(
     """
     Evaluate the MWPM decoder on batch_count * batch_size samples.
     """
-    
     def evaluate_batch(
         key,
         decoder: Matching,

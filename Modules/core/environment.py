@@ -45,7 +45,8 @@ class EnvironmentBase(ABC):
         Gives the state a score based on it's logical error rate
         """
         error_rate, key = self._get_state_error_rate(key, state)
-        score = -jnp.log10(.99) / error_rate
+        # score = -jnp.log10(.99) / (error_rate + 1e-10)
+        score = -jnp.log10(error_rate + 1e-10)
         return score, error_rate, key
 
     @abstractmethod
@@ -71,8 +72,9 @@ class EnvironmentBase(ABC):
         # procentage_change = (old_score - new_score) / old_score
         # reward = nn.sigmoid(procentage_change)
         # reward = jnp.log10(new_score) - jnp.log10(old_score)
-        reward = jnp.log10(new_score)
-        # reward = new_score / 400
+        # reward = jnp.log10(new_score)
+        reward = new_score
+        # reward = nn.sigmoid(new_score - old_score)
         return reward, new_score, error_rate, key
 
 

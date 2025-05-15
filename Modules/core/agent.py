@@ -32,7 +32,6 @@ class DQN():
         online_net_params: dict,
         state: jnp.ndarray,
         epsilon: float,
-        inactive_q_value: float = 0,
     ):
         """
         Let the agent take a decision based on the system state.
@@ -47,7 +46,7 @@ class DQN():
 
         returns: Tuple of (actions, done, key)
         """
-        return self._act(key, online_net_params, state, epsilon, inactive_q_value)
+        return self._act(key, online_net_params, state, epsilon)
 
     @partial(jit, static_argnames=("self"))
     def _act(
@@ -56,7 +55,6 @@ class DQN():
         online_net_params: dict,
         state: jnp.ndarray,
         epsilon: float,
-        inactive_q_value: float = 0,
     ):
         def _random_action(args):
             subkey, invariant_actions = args
@@ -64,15 +62,14 @@ class DQN():
                 subkey, 
                 shape=invariant_actions.shape
             ) - (invariant_actions == True)
-            return rv.argmax(), False
+            return rv.argmax()
 
         def _policy_action(args):
             subkey, invariant_actions = args
             q_values = self.model.apply_single(online_net_params, state).flatten()
             q_values = jnp.where(invariant_actions, -jnp.inf, q_values)
             desired_action = jnp.argmax(q_values)
-            done = q_values.max() < inactive_q_value
-            return desired_action, done
+            return desired_action
 
         # The actions that leave the deformation the same
         invariant_actions = jnp.zeros(
@@ -84,21 +81,14 @@ class DQN():
 
         explore = random.uniform(key) < epsilon
         key, subkey = random.split(key)
-        action, done = lax.cond(
+        action = lax.cond(
             explore,
             _random_action,
             _policy_action,
             operand=(subkey, invariant_actions),
         )
-        # If done, do nothing
-        action = lax.cond(
-            done,
-            # Pick the action that leaves the deformation the same
-            lambda: invariant_actions.argmax(),
-            # Otherwise pick the action that was chosen
-            lambda: action,
-        )
-        return action, done, subkey
+        
+        return action, subkey
 
     def split_action(
         self,

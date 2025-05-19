@@ -31,7 +31,6 @@ class DQN():
         key: random.PRNGKey,
         online_net_params: dict,
         state: jnp.ndarray,
-        disallowed_actions: jnp.ndarray,
         epsilon: float,
     ):
         """
@@ -47,7 +46,7 @@ class DQN():
 
         returns: Tuple of (actions, done, key)
         """
-        return self._act(key, online_net_params, state, disallowed_actions, epsilon)
+        return self._act(key, online_net_params, state, epsilon)
 
     @partial(jit, static_argnames=("self"))
     def _act(
@@ -55,36 +54,41 @@ class DQN():
         key: random.PRNGKey,
         online_net_params: dict,
         state: jnp.ndarray,
-        disallowed_actions: jnp.ndarray,
         epsilon: float,
     ):
-
-        def _random_action(subkey):
+        def _random_action(args):
+            subkey, invariant_actions = args
             rv = random.uniform(
                 subkey, 
-                shape=disallowed_actions.shape
-            ) * (disallowed_actions == False) - jnp.inf * (disallowed_actions == True)
-            return rv.argmax(), jnp.all(disallowed_actions)
-            # return random.choice(subkey, jnp.arange(self.n_actions)), False
+                shape=invariant_actions.shape
+            ) - (invariant_actions == True)
+            return rv.argmax()
 
-        def _policy_action(_):
-            q_values = jnp.where(
-                disallowed_actions,
-                -jnp.inf,
-                self.model.apply_single(online_net_params, state).flatten()
-            )
-            done = jnp.max(q_values) == -jnp.inf
-            return jnp.argmax(q_values), done
+        def _policy_action(args):
+            subkey, invariant_actions = args
+            q_values = self.model.apply_single(online_net_params, state).flatten()
+            q_values = jnp.where(invariant_actions, -jnp.inf, q_values)
+            desired_action = jnp.argmax(q_values)
+            return desired_action
+
+        # The actions that leave the deformation the same
+        invariant_actions = jnp.zeros(
+            self.num_data_qubits*self.num_deformations, 
+            dtype=jnp.bool
+        ).at[
+            self.merge_action(state, jnp.arange(self.num_data_qubits))
+        ].set(True)
 
         explore = random.uniform(key) < epsilon
         key, subkey = random.split(key)
-        action, done = lax.cond(
+        action = lax.cond(
             explore,
             _random_action,
             _policy_action,
-            operand=subkey,
+            operand=(subkey, invariant_actions),
         )
-        return action, done, subkey
+        
+        return action, subkey
 
     def split_action(
         self,
